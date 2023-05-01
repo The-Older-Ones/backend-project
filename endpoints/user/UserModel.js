@@ -8,7 +8,7 @@ const UserSchema = new mongoose.Schema({
     required: true,
     minlength: 4,
     validate: {
-      validator: function(v) {
+      validator: function (v) {
         // Check if the input value contains only valid characters
         return /^[a-zA-Z0-9_-]*$/.test(v);
       },
@@ -33,7 +33,7 @@ const UserSchema = new mongoose.Schema({
     required: true,
     minlength: 8,
     validate: {
-      validator: function(v) {
+      validator: function (v) {
         // Checking if password has ASCII characters
         const passRegex = /^[\x00-\x7F]*$/;
         return passRegex.test(v);
@@ -53,7 +53,7 @@ const UserSchema = new mongoose.Schema({
         // Check that the picture size is less than 6 MB
         return v.data.length <= 6000000; // 6 MB
       },
-      message: 'Profile picture is more than 1 MB'
+      message: 'Profile picture is more than 6 MB'
     }
   },
   isVerified: {
