@@ -1,17 +1,6 @@
 let mongoose = require("mongoose");
 const bcrypt = require("bcryptjs");
 
-// const UserSchema = new mongoose.Schema({
-//     userID: { type: String, unique: true, required: true },
-//     firstName: { type: String, required: true },
-//     lastName: { type: String, required: true },
-//     password: { type: String, required: true },
-//     // isAdministrator: { type: Boolean, default: false },
-//     profilePicture: { type: String } ONLY WITH URL FROM IMAGE
-// }, { timestamps: true });
-// Alternative Option with Buffer for the Users to be able to upload their pictures from their pc. The above
-// example only works with URL.
-
 const UserSchema = new mongoose.Schema({
   userID: {
     type: String,
