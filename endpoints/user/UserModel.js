@@ -9,7 +9,6 @@ const bcrypt = require("bcryptjs");
 //     // isAdministrator: { type: Boolean, default: false },
 //     profilePicture: { type: String } ONLY WITH URL FROM IMAGE
 // }, { timestamps: true });
-
 // Alternative Option with Buffer for the Users to be able to upload their pictures from their pc. The above
 // example only works with URL.
 
