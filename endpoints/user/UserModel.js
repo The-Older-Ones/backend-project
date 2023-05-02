@@ -22,8 +22,7 @@ const UserSchema = new mongoose.Schema({
     validate: {
       validator: function (v) {
         // Regular expression pattern for email validation
-        const emailRegex = /^([\w-\.]+@([\w-]+\.)+[\w-]{2,4})?$/;
-        return emailRegex.test(v);
+        return /^([\w-\.]+@([\w-]+\.)+[\w-]{2,4})?$/.test(v);
       },
       message: 'Please enter a valid email address',
     },
@@ -46,15 +45,30 @@ const UserSchema = new mongoose.Schema({
     default: false
   },
   profilePicture: {
-    data: Buffer,
-    contentType: String,
-    validate: {
-      validator: function (v) {
-        // Check that the picture size is less than 6 MB
-        return v.data.length <= 6000000; // 6 MB
-      },
-      message: 'Profile picture is more than 6 MB'
-    }
+    data: {
+      type: Buffer,
+      validate: [
+        {
+          validator: function (v) {
+            // Check that the picture size is less than 6 MB
+            return v.length <= 6000000; // 6 MB
+          },
+          message: 'Profile picture is more than 6 MB',
+        },
+      ],
+    },
+    contentType: {
+      type: String,
+      validate: [
+        {
+          validator: function (v) {
+            // Regular expression pattern for content type validation
+            return /^image\/(png|jpeg|gif)$/.test(v);
+          },
+          message: 'Please upload a valid image file (png, jpeg or gif)',
+        },
+      ],
+    },
   },
   isVerified: {
     type: Boolean,
@@ -69,7 +83,6 @@ UserSchema.pre("save", async function (next) {
   }
   const hashedPassword = await bcrypt.hash(user.password, 10);
   user.password = hashedPassword;
-
   if (user.profilePicture && user.profilePicture.data) {
     user.profilePicture.contentType = user.profilePicture.contentType || 'image/jpeg'; // Set default content type
     user.profilePicture.data = Buffer.from(user.profilePicture.data, 'base64'); // Convert base64 data to buffer

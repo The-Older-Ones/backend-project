@@ -10,15 +10,15 @@ function isAuthenticated(req, res, next) {
 				req.payload = result;
 				return next();
 			} else {
-				res.status(401).json({ Error: 'Not Authenticated' });
+				res.status(401).json({ Error: 'Not Authenticated 401' });
 				return;
 			}
 		});
 	} else {
-		res.status(401).json({ Error: 'Not Authenticated' });
+		res.status(401).json({ Error: 'Not Authenticated 401 NR:2' });
 	}
 }
 
 module.exports = {
-    isAuthenticated
+	isAuthenticated
 }

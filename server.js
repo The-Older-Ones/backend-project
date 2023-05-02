@@ -1,6 +1,5 @@
 const express = require('express')
-const db = require('./database/db');
-
+const datenbank = require('./database/db');
 const userRoutes = require('./endpoints/user/UserRoute')
 
 const app = express()
@@ -9,7 +8,7 @@ const bodyparser = require('body-parser');
 app.use(bodyparser.json());
 app.use('/api/users', userRoutes);
 
-db((err) => {
+datenbank((err) => {
     if (err) {
         console.log("Error: Could not connect to database");
     } else {
@@ -21,5 +20,4 @@ app.use(function (req, res) {
     res.status(404).send({ Error: "Endpoint not existing" });
   });
 
-app.listen(443)
-
+app.listen(80);

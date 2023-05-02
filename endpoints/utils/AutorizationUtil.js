@@ -14,11 +14,11 @@ function isUser(req, res, next) {
 			res.status(403).json({ Error: 'Not Authorized' });
 		}
 	} else {
-		res.status(401).json({ Error: 'Not Authenticated' });
+		res.status(401).json({ Error: 'Not Authenticated AUTO' });
 	}
 }
 
 module.exports = {
-    isAdministrator,
-    isUser
+	isAdministrator,
+	isUser
 }

@@ -1,16 +1,24 @@
 const User = require("./UserModel");
 
-function createUser(newUser, callback) {
+async function createUser(newUser) {
     if (!newUser.userID || !newUser.password || !newUser.email) {
-        return callback("Please fill all required fields", null)
+        throw new Error("Please fill all required fields", null)
     }
-    User.findOne({ userID: newUser.userID }), (err, obj) => {;
-        if (obj) {
-            return callback("User with the same UserID already exists: " + newUser.userID, null);
+    try {
+        const createNew = await User.create(newUser);
+        return createNew;
+    } catch (error) {
+        if (error.name === 'ValidationError') {
+            // To show the errors from the validators or the error while creating User if its something else
+            const message = Object.values(error.errors).map((err) => err.message).join('; ');
+            throw new Error(message);
         } else {
-            User.create(newUser, (err, obj) => {
-                obj ? callback(null, obj) : callback("Create Error", null) 
-            });
+            let user = await User.findOne({ $or: [{ userID: newUser.userID }, { email: newUser.email }] });
+            // the $or is used to either check for a duplicate email or a duplicate userID
+            if (user) {
+                throw new Error("User with the same UserID or Email already exists");
+            }
+            throw new Error("Error while creating User");
         }
     }
 }

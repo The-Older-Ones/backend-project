@@ -1,16 +1,22 @@
 var express = require("express");
 var router = express.Router();
 var userService = require("./UserService");
-var AuthenticationUtil = require("../utils/AuthenticationUtil");
 
-router.post("/", AuthenticationUtil.isAuthenticated, function (req, res) {
-    userService.createUser(req.body, function (err, result) {
-        if (result) {
-            res.status(201).send(result);
-        } else {
-            res.status(400).json({ Error: err });
-        }
-    });
+router.post("/", async function (req, res) {
+    try {
+        const result = await userService.createUser(req.body);
+        const subset = {
+            userID: result.userID,
+            email: result.email,
+            profilePicture: result.profilePicture,
+            isVerified: result.isVerified,
+            isAdministrator: result.isAdministrator
+            //to hide password from response
+        };
+        res.status(201).send(subset);
+    } catch (error) {
+        res.status(400).json({ Error: error.message });
+    }
 });
 
 module.exports = router;
