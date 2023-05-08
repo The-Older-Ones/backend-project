@@ -1,4 +1,8 @@
 {
+    "session": {
+        "tokenKey": "djghhhhuuwiwuewieuwieuriwu",
+        "timeout": 300000
+    },
     "db": {
         "connectionOptions": {
             "useNewUrlParser": true,
