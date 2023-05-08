@@ -4,7 +4,7 @@ Content-Type: application/json
 
 {
     "userID": "Veenc0",
-    "email": "contactveenco@gmail.com",
+    //"email": "contactveenco@gmail.com",
     "password": "123456789"
 }
 
@@ -15,7 +15,7 @@ Content-Type: application/json
 
 {
     "userID": "--ääs",
-    "email": "contactveenco@gmail.com",
+   // "email": "contactveenco@gmail.com",
     "password": "123456789"
 }
 
@@ -26,42 +26,42 @@ Content-Type: application/json
 
 {
     "userID": "Bastiii",
-    "email": "contactveenco@#.com",
+    //"email": "contactveenco@#.com",
     "password": "123456789"
 }
 
 // Creating a User with invalid email with nothing after the "."
 ###
-POST http://127.0.0.1/api/users
-Content-Type: application/json
+# POST http://127.0.0.1/api/users
+# Content-Type: application/json
 
-{
-    "userID": "Bastiii",
-    "email": "contactveenco@gmail.",
-    "password": "123456789"
-}
+# {
+#     "userID": "Bastiii",
+#     "email": "contactveenco@gmail.",
+#     "password": "123456789"
+# }
 
 // Creating a User with invalid email without "@"
-###
-POST http://127.0.0.1/api/users
-Content-Type: application/json
+ ###
+# POST http://127.0.0.1/api/users
+# Content-Type: application/json
 
-{
-    "userID": "Bastiii",
-    "email": "contactveenco_gmail.com",
-    "password": "123456789"
-}
+# {
+#     "userID": "Bastiii",
+#     //"email": "contactveenco_gmail.com",
+#     "password": "123456789"
+# }
 
 // Creating a User with an email that already exists
 ###
-POST http://127.0.0.1/api/users
-Content-Type: application/json
+# POST http://127.0.0.1/api/users
+# Content-Type: application/json
 
-{
-    "userID": "Vasia",
-    "email": "contactveenco@gmail.com",
-    "password": "123456789"
-}
+# {
+#     "userID": "Vasia",
+#     //"email": "contactveenco@gmail.com",
+#     "password": "123456789"
+# }
 
 // Creating a User with a username with less than 4 characters
 ###
@@ -70,7 +70,7 @@ Content-Type: application/json
 
 {
     "userID": "Vas",
-    "email": "contactveenca@gmail.com",
+    //"email": "contactveenca@gmail.com",
     "password": "123456789"
 }
 
@@ -81,7 +81,7 @@ Content-Type: application/json
 
 {
     "userID": "Vasi",
-    "email": "contactveenca@gmail.com",
+    //"email": "contactveenca@gmail.com",
     "password": "1239"
 }
 
@@ -92,7 +92,7 @@ Content-Type: application/json
 
 {
     "userID": "Vasi",
-    "email": "contactveenca@gmail.com",
+    //"email": "contactveenca@gmail.com",
     "password": "äü$$%%äü9"
 }
 
@@ -103,7 +103,7 @@ Content-Type: application/json
 
 {
     "userID": "Vasi",
-    "email": "contactveenca@gmail.com",
+    //"email": "contactveenca@gmail.com",
     "password": "123456799"
 }
 

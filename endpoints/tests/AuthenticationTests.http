@@ -1,0 +1,18 @@
+POST http://127.0.0.1/api/users
+Content-Type: application/json
+
+{
+    "userID": "veenco",
+    "password": "12345678"
+}
+
+###
+// Login success
+GET http://127.0.0.1/api/authenticate
+Authorization: Basic veenco:12345678
+
+
+###
+// Login fail
+GET http://127.0.0.1/api/authenticate
+Authorization: Basic veenco:1234512345678

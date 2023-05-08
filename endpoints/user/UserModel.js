@@ -18,7 +18,7 @@ const UserSchema = new mongoose.Schema({
   email: {
     type: String,
     unique: true,
-    required: true,
+    //required: true,
     validate: {
       validator: function (v) {
         // Regular expression pattern for email validation
@@ -83,21 +83,18 @@ UserSchema.pre("save", async function (next) {
   }
   const hashedPassword = await bcrypt.hash(user.password, 10);
   user.password = hashedPassword;
-  if (user.profilePicture && user.profilePicture.data) {
-    user.profilePicture.contentType = user.profilePicture.contentType || 'image/jpeg'; // Set default content type
-    user.profilePicture.data = Buffer.from(user.profilePicture.data, 'base64'); // Convert base64 data to buffer
-  }
+  // if (user.profilePicture && user.profilePicture.data) {
+  //   user.profilePicture.contentType = user.profilePicture.contentType || 'image/jpeg'; // Set default content type
+  //   user.profilePicture.data = Buffer.from(user.profilePicture.data, 'base64'); // Convert base64 data to buffer
+  // }
   next();
 });
 
-UserSchema.methods.comparePassword = function (candidatePassword, next) {
-  bcrypt.compare(candidatePassword, this.password, function (err, isMatch) {
-    if (err)
-      return next(err, null);
-    else
-      next(null, isMatch);
+UserSchema.method("comparePassword", function (compass, callback) {
+  bcrypt.compare(compass, this.password, (err, result) => {
+      result ? callback(null, result) : callback(err, null);
   });
-}
+});
 
 const User = mongoose.model("user", UserSchema);
 

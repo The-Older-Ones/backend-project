@@ -7,12 +7,12 @@ router.get('/', function (req, res) {
         const base64Credentials = req.headers.authorization.split(' ')[1];
         const credentials = Buffer.from(base64Credentials, 'base64').toString('ascii');
         const [username, password] = credentials.split(':');
-        authenticationService.createSessionToken({ username, password }, function (err, token) {
+        authenticationService.createToken({ username, password }, function (err, token) {
             if (token) {
-                res.header("Authorization", "Bearer " + token);
+                res.header("Authorization", "Bearer " + token).status(200).send();
             }
             else {
-                res.status(401).json({ Error: err });
+                res.status(401).json({ Error: "Incorrect username or password"  });
             }
         });
     } else {

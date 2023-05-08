@@ -1,12 +1,14 @@
-const express = require('express')
+const express = require('express');
 const datenbank = require('./database/db');
-const userRoutes = require('./endpoints/user/UserRoute')
+const userRoutes = require('./endpoints/user/UserRoute');
+const authenticationRoute = require('./endpoints/authentication/AuthenticationRoutes');
 
 const app = express()
 const bodyparser = require('body-parser');
 
 app.use(bodyparser.json());
 app.use('/api/users', userRoutes);
+app.use('/api/authenticate', authenticationRoute);
 
 datenbank((err) => {
     if (err) {

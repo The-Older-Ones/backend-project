@@ -1,6 +1,6 @@
-var userService = require('../user/UserService');
-var jwt = require('jsonwebtoken');
-var config = require("config");
+const userService = require('../user/UserService');
+const jwt = require('jsonwebtoken');
+const config = require("config");
 
 function createToken(content, callback) {
     userService.authenticate(content, function (err, user) {
