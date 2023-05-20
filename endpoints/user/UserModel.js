@@ -30,12 +30,13 @@ const UserSchema = new mongoose.Schema({
   password: {
     type: String,
     required: true,
-    minlength: 8,
+    minlength: [8,'Password is shorter than the minimum allowed length (8).'],
     validate: {
       validator: function (v) {
         // Checking if password has ASCII characters
         const passRegex = /^[\x00-\x7F]*$/;
         return passRegex.test(v);
+
       },
       message: 'Please enter a valid password'
     }
