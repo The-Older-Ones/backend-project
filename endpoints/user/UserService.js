@@ -3,7 +3,7 @@ const User = require("./UserModel");
 async function createUser(newUser) {
     // add !newUser.email if the time has come
     if (!newUser.userID || !newUser.password) {
-        throw new Error("Please fill all required fields", null)
+        throw new Error("Please fill all required fields", null) 
     }
     try {
         const createNew = await User.create(newUser);
@@ -19,7 +19,7 @@ async function createUser(newUser) {
     } catch (error) {
         if (error.name === 'ValidationError') {
             // To show the errors from the validators or the error while creating User if its something else
-            const message = Object.values(error.errors).map((err) => err.message).join('; ');
+            const message = Object.values(error.errors).map((err) => err.message);
             throw new Error(message);
         } else {
             let user = await User.findOne({ $or: [{ userID: newUser.userID }, { email: newUser.email }] });
@@ -27,7 +27,7 @@ async function createUser(newUser) {
             if (user) {
                 throw new Error("User with the same UserID or Email already exists");
             }
-            throw new Error("Error while creating User");
+            throw new Error("Error while creating User"); //  modal schließen
         }
     }
 }
