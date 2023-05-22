@@ -3,6 +3,7 @@ const datenbank = require('./database/db');
 const cors = require("cors")
 const userRoutes = require('./endpoints/user/UserRoute');
 const authenticationRoute = require('./endpoints/authentication/AuthenticationRoutes');
+const questionInit = require("./database/TriviaQuestions/QuestionInit");
 
 const app = express()
 const bodyparser = require('body-parser');
@@ -31,3 +32,5 @@ app.use(function (req, res) {
   });
 
 app.listen(80);
+
+questionInit();
