@@ -1,9 +1,12 @@
 const express = require('express');
 const datenbank = require('./database/db');
 const cors = require("cors")
+const http = require('http')
 const userRoutes = require('./endpoints/user/UserRoute');
 const authenticationRoute = require('./endpoints/authentication/AuthenticationRoutes');
 const questionInit = require("./database/TriviaQuestions/QuestionInit");
+// const gameServices = require('./endpoints/game/GameServices');
+const socketIO = require('socket.io')
 
 const app = express()
 const bodyparser = require('body-parser');
@@ -28,10 +31,25 @@ datenbank((err) => {
     }
 });
 
+questionInit();
+
 app.use(function (req, res) {
     res.status(404).send({ Error: "Endpoint not existing" });
   });
 
-app.listen(80);
+const server = http.createServer(app)
 
-questionInit();
+server.listen(80);
+
+const io = socketIO(server);
+
+const routeNamespace = io.of('/game');
+
+routeNamespace.on('connection', socket => {
+    console.log("New user is connected");
+    // gameServices.createGame(io, socket);
+    //socket events siehe prototyp
+    socket.on('disconnect', () =>{
+        console.log("A user disconnected")
+    })
+})
