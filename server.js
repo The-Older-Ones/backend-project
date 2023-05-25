@@ -15,6 +15,7 @@ app.use(function (req, res, next) {
     res.header("Access-Control-Expose-Headers", "Authorization");
     next();
 })
+
 app.use(bodyparser.json());
 app.use('/api/users', userRoutes);
 app.use('/api/authenticate', authenticationRoute);
