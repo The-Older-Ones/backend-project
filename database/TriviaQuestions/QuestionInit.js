@@ -1,25 +1,29 @@
 const Question = require("./QuestionModel");
+const List = require("./CategoryListModel");
 const fs = require("fs").promises;
 const path = require("path");
 
 const folderPath = __dirname + "/InitialQuestions";
 const catalog = [];
 
-main = async () => {
+const main = async () => {
     try {
         const sample = await Question.findOne();
-        if(!sample){
+        if (!sample) {
             await fileLoader();
-            await fillDB()
-        } else{
-            console.log("Keine initialisierung der Fragen notwendig");
+            await fillDB();
+            const allCategory = await Question.distinct("category");
+            await List.create({ list: allCategory });
+            console.log("Database successfully initialized with categorylist")
+        } else {
+            console.log("No initialization of the questions necessary");
         }
     } catch (err) {
         throw err;
     }
 }
 
-fileLoader = async () => {
+const fileLoader = async () => {
     try {
         const files = await fs.readdir(folderPath);
         const jsonFiles = files.filter((file) =>
@@ -35,22 +39,22 @@ fileLoader = async () => {
         });
 
         await Promise.all(fileReadPromises);
-        console.log("Files erfolgreich geladen");
+        console.log("Files loaded successfully");
     } catch (err) {
-        throw new Error("Fehler beim Laden der Files. " + err);
+        throw new Error("Error loading files" + err);
     }
 }
 
-fillDB = async () => {
+const fillDB = async () => {
     const savePromises = catalog.map((questionObject) => {
         try {
             Question.create(questionObject)
         } catch {
-            console.log("Fehler beim speichern von Frage : " + questionObject.question)
+            console.log("Error saving question : " + questionObject.question)
         }
     });
     await Promise.all(savePromises);
-    console.log("Datenbank erflogreich mit Fragen initialisiert");
+    console.log("Database successfully initialized with questions");
 }
 
 module.exports = main;
