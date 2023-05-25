@@ -5,7 +5,7 @@ Content-Type: application/json
 {
     "userID": "Veenc0",
     //"email": "contactveenco@gmail.com",
-    "password": "1234"
+    "password": "12346767676"
 }
 
 // Creating a User with invalid characters in username
@@ -104,6 +104,6 @@ Content-Type: application/json
 {
     "userID": "Vasi",
     //"email": "contactveenca@gmail.com",
-    "password": "123456799"
+    "password": "123456799777"
 }
 
