@@ -22,7 +22,7 @@ async function createUser(newUser) {
             const message = Object.values(error.errors).map((err) => err.message);
             throw new Error(message);
         } else {
-            let user = await User.findOne({ $or: [{ userID: newUser.userID }, { email: newUser.email }] });
+            let user = await User.findOne({ userID: newUser.userID });
             // the $or is used to either check for a duplicate email or a duplicate userID
             if (user) {
                 throw new Error("User with the same UserID or Email already exists");
