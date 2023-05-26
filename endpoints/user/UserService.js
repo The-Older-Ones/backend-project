@@ -27,7 +27,7 @@ async function createUser(newUser) {
             if (user) {
                 throw new Error("User with the same UserID or Email already exists");
             }
-            throw new Error("Error while creating User"); //  modal schließen
+            throw new Error("Error while creating User");
         }
     }
 }

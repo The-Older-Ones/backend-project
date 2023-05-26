@@ -12,11 +12,11 @@ function generateCode(){
     return code;
 }
 
-exports.createGame = (sio, socket) => {
-    io = sio;
-    gameSocket = socket;
-    gaameSocket.on('joinLobby', joinLobby);
-}
+// exports.createGame = (sio, socket) => {
+//     io = sio;
+//     gameSocket = socket;
+//     gaameSocket.on('joinLobby', joinLobby);
+// }
 
 function joinLobby(lobbyId) {
     console.log('Lobby entering');
