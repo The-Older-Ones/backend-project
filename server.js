@@ -40,6 +40,8 @@ const server = http.createServer(app)
 
 //_____________________________________________Prototyp Testing_______________________________________________________//
 
+const connection = require("./endpoints/game/GameConnection");
+
 const io = socketIO(server, {
     cors: {
         origin: "*",
@@ -49,15 +51,7 @@ const io = socketIO(server, {
 });
 
 const routeNamespace = io.of('/api/game');
-
-routeNamespace.on('connect', socket => {
-    console.log("New user is connected");
-    // gameServices.createGame(io, socket);
-    //socket events siehe prototyp
-    socket.on('disconnect', () => {
-        console.log("A user disconnected")
-    })
-});
+connection(routeNamespace);
 
 
 //_________________________________________________Notes______________________________________________________________//
