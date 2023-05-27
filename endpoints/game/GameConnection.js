@@ -18,7 +18,7 @@ const connection = (io) => {
   });
 }
 
-function createGame(data) {
+async function createGame(data) {
   const hostName = data.playerName;
   const token = data.token;
 
@@ -29,6 +29,7 @@ function createGame(data) {
   let verify = authenticated(token);
   if(verify.error){
     this.emit("error", { message: verify.error })
+    verify = false;
   }
 
   const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
@@ -64,7 +65,9 @@ function createGame(data) {
     locked: false
   };
 
-  this.emit("gameCreated", { gameId: code, socketId: this.id, playerName: hostName });
+  let list = await GameService.getCategoryList();
+
+  this.emit("gameCreated", { gameId: code, socketId: this.id, list : list });
   this.join(code);
 }
 
@@ -113,8 +116,8 @@ function authenticated (token){
   return verify;
 }
 
-module.exports = connection;
 
+module.exports = connection;
 
 
 //_________________________________________________Notes______________________________________________________________//
