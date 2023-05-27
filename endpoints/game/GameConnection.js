@@ -1,4 +1,6 @@
 const GameService = require("./GameServices")
+const jwt = require('jsonwebtoken');
+const config = require("config");
 
 const lobbys = {};
 const position = {};
@@ -18,9 +20,15 @@ const connection = (io) => {
 
 function createGame(data) {
   const hostName = data.playerName;
+  const token = data.token;
 
   if (!hostName) {
     this.emit("error", { message: "data.playerName is not set" })
+  }
+
+  let verify = authenticated(token);
+  if(verify.error){
+    this.emit("error", { message: verify.error })
   }
 
   const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
@@ -44,17 +52,20 @@ function createGame(data) {
   }
 
   position[this.id] = code;
+
   lobbys[code] = {
     player: {
-      [this.id]: hostName
+      [this.id]: {
+        name : hostName,
+        auth : verify,
+        points : 0
+      }
     },
     locked: false
   };
 
   this.emit("gameCreated", { gameId: code, socketId: this.id, playerName: hostName });
   this.join(code);
-
-  console.log(lobbys);
 }
 
 function disconnect(id) {
@@ -86,6 +97,22 @@ function disconnect(id) {
   }
 }
 
+function authenticated (token){
+  if(!token){
+    return false;
+  }
+  let verify;
+  const privateKey = config.get("session.tokenKey");
+   jwt.verify(token, privateKey, { algorithms: "HS256" }, function (err, result) {
+    if (result) {
+      verify = true;
+    } else {
+      verify = {error : "Token invalid"}
+    }
+  });
+  return verify;
+}
+
 module.exports = connection;
 
 
@@ -94,5 +121,23 @@ module.exports = connection;
 /*
 
 - ausstehend noch die validierung des tokens + lagerung der information bzw flag beim spieler
+
+- lobbys {
+          "LobbyCode" {
+                      player : { "socketID" : {
+                                                  name : "playername",
+                                                  auth : default false,
+                                                  points : initial 0
+                                  },
+                                  "socketID" : ...
+
+                      },
+                      locked : default false
+          },
+}
+
+let chunk = "ff"
+
+lobbys[chunk].player[this.id].points = 210
 
 */
