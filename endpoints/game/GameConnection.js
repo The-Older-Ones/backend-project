@@ -29,7 +29,7 @@ async function createGame(data) {
   }
 
   let verify = authenticated(token);
-  if(verify.error){
+  if (verify.error) {
     this.emit("error", { message: verify.error })
     verify = false;
   }
@@ -59,18 +59,18 @@ async function createGame(data) {
   lobbys[code] = {
     player: {
       [this.id]: {
-        name : hostName,
-        auth : verify,
-        points : 0
+        name: hostName,
+        auth: verify,
+        points: 0
       }
     },
     locked: false
   };
-  try{
-  let list = await GameService.getCategoryList();
-  this.emit("gameCreated", { gameId: code, socketId: this.id, list : list });
-  this.join(code);
-  } catch(error){
+  try {
+    let list = await GameService.getCategoryList();
+    this.emit("gameCreated", { gameId: code, socketId: this.id, list: list });
+    this.join(code);
+  } catch (error) {
     this.emit("error", { message: error.message })
   }
 }
@@ -104,29 +104,29 @@ function disconnect(id) {
   }
 }
 
-function authenticated (token){
-  if(!token){
+function authenticated(token) {
+  if (!token) {
     return false;
   }
   let verify;
   const privateKey = config.get("session.tokenKey");
-   jwt.verify(token, privateKey, { algorithms: "HS256" }, function (err, result) {
+  jwt.verify(token, privateKey, { algorithms: "HS256" }, function (err, result) {
     if (result) {
       verify = true;
     } else {
-      verify = {error : "Token invalid"}
+      verify = { error: "Token invalid" }
     }
   });
   return verify;
 }
 
-function joinLobby(data){
+function joinLobby(data) {
   const lobbyId = data.gameId;
   const playerName = data.playerName;
-  const token = data.token; 
+  const token = data.token;
 
-  if (lobbys[lobbyId].locked) {
-    this.emit('error', { message: 'Lobby ID is not set' });
+  if (typeof lobbys[lobbyId] === 'undefined' || lobbys[lobbyId].locked === true) {
+    this.emit('error', { message: 'Lobby is not available' });
     return;
   }
 
@@ -136,7 +136,7 @@ function joinLobby(data){
   }
 
   let verify = authenticated(token);
-  if(verify.error){
+  if (verify.error) {
     this.emit("error", { message: verify.error })
     verify = false;
   }
@@ -147,13 +147,13 @@ function joinLobby(data){
 
   position[this.id] = lobbyId;
 
-  lobbys[lobbyId].player[this.id]={
-    name : playerName,
-    auth : verify,
-    points : 0
+  lobbys[lobbyId].player[this.id] = {
+    name: playerName,
+    auth: verify,
+    points: 0
   }
 
-  this.emit('joinedLobby', {gameId: lobbyId, socketId: this.id})
+  this.emit('joinedLobby', { gameId: lobbyId, socketId: this.id })
   this.join(lobbyId);
 }
 
