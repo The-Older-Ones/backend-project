@@ -17,6 +17,7 @@ const bodyparser = require('body-parser');
 //     res.header("Access-Control-Expose-Headers", "Authorization");
 //     next();
 // });
+
 app.use(cors({
     exposedHeaders: ['Authorization']
 }));
@@ -50,38 +51,12 @@ const io = socketIO(server, {
     }
 });
 
-const routeNamespace = io.of('/api/game');
-connection(routeNamespace);
+connection(io.of('/api/game'));
 
 
 //_________________________________________________Notes______________________________________________________________//
 /*
 
-- Eine Datei in der alle Handler stehen die für Sockets (routeNameSpace) benutzt wird. (GameConnection)
-- Eine Datei in der alle Abfragen an die Datenbank getätigt werden? (GameService)
-
-- GameConnection kann wie ein Konstruktor gebaut werden, dh. Es bekommt ein Socket Objekt und fügt diesem alles hinzu.
-zb. in server.js würde es so aussehen:
-
-const connection = require("./endpoints/game/GameConnection");
-const io = socketIO(server)
-const routeNamespace = io.of('/api/game'); 
-const VollständigerSocket = connection(routeNameSpace);
-
-oder kürzer
-
-const connection = require("./endpoints/game/GameConnection");
-const io = socketIO(server) 
-const VollständigerSocket = connection(io.of('/api/game'));
-
-damit wäre die Logik der handler in GameConnection ausgelagert.
-
-- In GameConnection werden dann die vorher definierten Handler hinzugefügt. Außerdem importet sich GameConnection das GameService Modul,
-welches von den Handler benutzt wird um zugriff auf die DB zu erhalten.
-
--
-
-                                       
 - Cors bei socketIO möglicherweise überarbeiten wenn der Token gesendet werden soll.
 
 */
