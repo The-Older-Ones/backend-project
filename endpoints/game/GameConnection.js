@@ -12,6 +12,7 @@ const connection = (io) => {
 
     playerSocket.on("createGame", createGame);
     playerSocket.on("disconnect", disconnect);
+    playerSocket.on("joinLobby", joinLobby);
 
     //------- socket.on all handler -------//
     playerSocket.emit("connected", { message: "Connected successfully" });
@@ -24,6 +25,7 @@ async function createGame(data) {
 
   if (!hostName) {
     this.emit("error", { message: "data.playerName is not set" })
+    return;
   }
 
   let verify = authenticated(token);
@@ -64,11 +66,13 @@ async function createGame(data) {
     },
     locked: false
   };
-
+  try{
   let list = await GameService.getCategoryList();
-
   this.emit("gameCreated", { gameId: code, socketId: this.id, list : list });
   this.join(code);
+  } catch(error){
+    this.emit("error", { message: error.message })
+  }
 }
 
 function disconnect(id) {
@@ -116,6 +120,42 @@ function authenticated (token){
   return verify;
 }
 
+function joinLobby(data){
+  const lobbyId = data.gameId;
+  const playerName = data.playerName;
+  const token = data.token; 
+
+  if (lobbys[lobbyId].locked) {
+    this.emit('error', { message: 'Lobby ID is not set' });
+    return;
+  }
+
+  if (!playerName) {
+    this.emit("error", { message: "data.playerName is not set" })
+    return;
+  }
+
+  let verify = authenticated(token);
+  if(verify.error){
+    this.emit("error", { message: verify.error })
+    verify = false;
+  }
+
+  if (position[this.id]) {
+    disconnect(this.id);
+  }
+
+  position[this.id] = lobbyId;
+
+  lobbys[lobbyId].player[this.id]={
+    name : playerName,
+    auth : verify,
+    points : 0
+  }
+
+  this.emit('joinedLobby', {gameId: lobbyId, socketId: this.id})
+  this.join(lobbyId);
+}
 
 module.exports = connection;
 

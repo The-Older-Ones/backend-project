@@ -20,6 +20,9 @@
     <form id="form" action="">
       <input id="input" autocomplete="off" /><button>Send</button>
     </form>
+    <form id="form2" action="">
+      <input id="input2" autocomplete="off" /><button>Join</button>
+    </form>
   </body>
   <!-- Die script Zeile wurde auch erst nach Hello World eingefügt -->
   <script src="https://cdn.socket.io/4.3.1/socket.io.min.js"></script>
@@ -28,6 +31,8 @@
   
     var messages = document.getElementById('messages');
     var form = document.getElementById('form');
+    var form2 = document.getElementById('form2');
+    var input2 = document.getElementById('input2');
     var input = document.getElementById('input');
   
     form.addEventListener('submit', function(e) {
@@ -38,11 +43,23 @@
       }
     });
 
+    form2.addEventListener('submit', function(e) {
+      e.preventDefault();
+      if (input2.value) {
+        socket.emit('joinLobby', {gameId: input2.value, playerName : input2.value});
+        input2.value = '';
+      }
+    });
   
     socket.on('gameCreated', function(data) {
-      console.log(data.gameId);
+      console.log(data.gameId)
       console.log(data.socketId)
       console.log(data.list)
+    });
+
+    socket.on('joinedLobby', function(data) {
+      console.log(data.gameId)
+      console.log(data.socketId)
     });
   </script>
 </html>

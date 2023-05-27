@@ -5,7 +5,7 @@ async function getCategoryList() {
       const categoryList = await CategoryList.find();
       return categoryList[0].list;
     } catch (error) {
-      throw new Error('Failed to retrieve category list:', error);
+      throw new Error('Failed to retrieve category list');
     }
   }
 
