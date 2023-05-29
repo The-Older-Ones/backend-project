@@ -16,7 +16,7 @@ const connection = (io) => {
     playerSocket.on("createGame", createGame);
     playerSocket.on("disconnect", disconnect);
     playerSocket.on("joinLobby", joinLobby);
-   // playerSocket.on("updateHost", updateHost);
+    playerSocket.on("updateHost", updateHost);
 
     //------- socket.on all handler -------//
     playerSocket.emit("connected", { message: "Connected successfully" });
@@ -55,7 +55,7 @@ async function createGame(data) {
   } while (!checkedGameID)
 
   if (position[this.id]) {
-    disconnect({id : this.id});
+    disconnect({ id: this.id });
   }
 
   position[this.id] = code;
@@ -69,7 +69,7 @@ async function createGame(data) {
       }
     },
     locked: false,
-    host : this.id
+    host: this.id
   };
 
   try {
@@ -86,23 +86,30 @@ function disconnect(data) {
   const socketId = data.id === "transport close" ? this.id : data.id;
   const room = position[socketId];
 
-  if (room) {
-
-    delete lobbys[room].player[socketId];
-    delete position[socketId];
-
-    console.log("Player left Lobby " + room)
-
-    const checkEmptiness = Object.keys(lobbys[room].player);
-
-    if (checkEmptiness === 0) {
-      delete lobbys[room];
-      console.log("Closed Lobby: " + room)
-    }
-
-  } else {
+  if (!room) {
     console.log("Player left Game")
+    return;
   }
+
+  delete lobbys[room].player[socketId];
+  delete position[socketId];
+
+  console.log("Player left Lobby " + room)
+
+  const checkEmptiness = Object.keys(lobbys[room].player);
+
+  if (checkEmptiness === 0) {
+    delete lobbys[room];
+    console.log("Closed Lobby: " + room)
+    return;
+  }
+
+  if(socketId == lobbys[room].host){
+    updateHost({id : this.id, gameId : room})
+  }
+
+  gameSocket.to(room).emit("playerLeft", {playerID : this.id});
+
 }
 
 function authenticated(token) {
@@ -143,7 +150,7 @@ function joinLobby(data) {
   }
 
   if (position[this.id]) {
-    disconnect({id : this.id});
+    disconnect({ id: this.id });
   }
 
   position[this.id] = lobbyId;
@@ -154,9 +161,9 @@ function joinLobby(data) {
     points: 0
   }
 
-  this.emit('joinedLobby', { gameId: lobbyId, socketId: this.id })
-  // braodcast an alle 
   this.join(lobbyId);
+  this.emit('joinedLobby', { gameId: lobbyId, socketId: this.id });
+  gameSocket.to(lobbyId).emit("playerjoined", { playerId: this.id, playerName: playerName });
 }
 
 function updateHost(data) {
@@ -166,26 +173,26 @@ function updateHost(data) {
 
   const currentHost = lobbys[room].host
 
-  if(currentHost != socketId){
-    socketId.emit("error", {message : "No permission to change the host"})
+  if (currentHost != socketId) {
+    socketId.emit("error", { message: "No permission to change the host" })
     return;
   }
 
-  if(currentHost == newHost){
-    socketId.emit("error" , {message : "Already host"});
+  if (currentHost == newHost) {
+    socketId.emit("error", { message: "Already host" });
     return;
   }
 
   const playerInLobby = Object.keys(lobbys[room].player).filter((id) => id == newHost).length == 1;
 
-  if(!playerInLobby){
-    socketId.emit("error" , {message : "Selected player is not in the lobby"});
+  if (!playerInLobby) {
+    socketId.emit("error", { message: "Selected player is not in the lobby" });
     return;
   }
 
   lobbys[room].host = newHost;
 
-  // broadcast?
+  gameSocket.to(room).emit("updatedHost", { newHost: newHost });
 }
 
 module.exports = connection;
@@ -193,8 +200,6 @@ module.exports = connection;
 
 //_________________________________________________Notes______________________________________________________________//
 /*
-
-- updateHost fertig schreiben, in disconnect einfügen und testen
 
 - lobbys {
           "LobbyCode" {
@@ -207,7 +212,7 @@ module.exports = connection;
 
                       },
                       locked : default false,
-                      host : socket.ID of the creater
+                      host : socket.ID of the creator
           },
 }
 
