@@ -28,13 +28,13 @@ async function createGame(data) {
   const token = data.token;
 
   if (!hostName) {
-    this.emit("error", { message: "data.playerName is not set" })
+    this.emit("error", { message: "data.playerName is not set", type: "critical" })
     return;
   }
 
   let verify = authenticated(token);
   if (verify.error) {
-    this.emit("error", { message: verify.error })
+    this.emit("error", { message: verify.error, type: "warning" })
     verify = false;
   }
 
@@ -77,7 +77,7 @@ async function createGame(data) {
     this.emit("gameCreated", { gameId: code, socketId: this.id, list: list });
     this.join(code);
   } catch (error) {
-    this.emit("error", { message: error.message })
+    this.emit("error", { message: error.message, type: "critical" })
   }
 }
 
@@ -104,11 +104,11 @@ function disconnect(data) {
     return;
   }
 
-  if(socketId == lobbys[room].host){
-    updateHost({id : this.id, gameId : room})
+  if (socketId == lobbys[room].host) {
+    updateHost({ id: this.id, gameId: room })
   }
 
-  gameSocket.to(room).emit("playerLeft", {playerID : this.id});
+  gameSocket.to(room).emit("playerLeft", { playerID: this.id });
 
 }
 
@@ -134,18 +134,18 @@ function joinLobby(data) {
   const token = data.token;
 
   if (typeof lobbys[lobbyId] === 'undefined' || lobbys[lobbyId].locked === true) {
-    this.emit('error', { message: 'Lobby is not available' });
+    this.emit('error', { message: 'Lobby is not available', type: "critical" });
     return;
   }
 
   if (!playerName) {
-    this.emit("error", { message: "data.playerName is not set" })
+    this.emit("error", { message: "data.playerName is not set", type: "critical" })
     return;
   }
 
   let verify = authenticated(token);
   if (verify.error) {
-    this.emit("error", { message: verify.error })
+    this.emit("error", { message: verify.error, type: "warning" })
     verify = false;
   }
 
@@ -163,7 +163,7 @@ function joinLobby(data) {
 
   this.join(lobbyId);
   this.emit('joinedLobby', { gameId: lobbyId, socketId: this.id });
-  gameSocket.to(lobbyId).emit("playerjoined", { playerId: this.id, playerName: playerName });
+  gameSocket.to(lobbyId).emit("playerJoined", { playerId: this.id, playerName: playerName });
 }
 
 function updateHost(data) {
@@ -174,19 +174,19 @@ function updateHost(data) {
   const currentHost = lobbys[room].host
 
   if (currentHost != socketId) {
-    socketId.emit("error", { message: "No permission to change the host" })
+    socketId.emit("error", { message: "No permission to change the host", type: "critical" })
     return;
   }
 
   if (currentHost == newHost) {
-    socketId.emit("error", { message: "Already host" });
+    socketId.emit("error", { message: "Already host", type: "critical" });
     return;
   }
 
   const playerInLobby = Object.keys(lobbys[room].player).filter((id) => id == newHost).length == 1;
 
   if (!playerInLobby) {
-    socketId.emit("error", { message: "Selected player is not in the lobby" });
+    socketId.emit("error", { message: "Selected player is not in the lobby", type: "critical" });
     return;
   }
 
