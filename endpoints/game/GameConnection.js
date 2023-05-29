@@ -153,6 +153,11 @@ function joinLobby(data) {
     disconnect({ id: this.id });
   }
 
+  const lobbyMember = {};
+  Object.keys(lobbys[lobbyId].player).forEach((socketID) => {
+    lobbyMember[socketID] = lobbys[lobbyId].player[socketID].name;
+  });
+
   position[this.id] = lobbyId;
 
   lobbys[lobbyId].player[this.id] = {
@@ -162,7 +167,7 @@ function joinLobby(data) {
   }
 
   this.join(lobbyId);
-  this.emit('joinedLobby', { gameId: lobbyId, socketId: this.id });
+  this.emit('joinedLobby', { gameId: lobbyId, socketId: this.id, lobbyMember: lobbyMember });
   gameSocket.to(lobbyId).emit("playerJoined", { playerId: this.id, playerName: playerName });
 }
 
