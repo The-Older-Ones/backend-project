@@ -8,6 +8,7 @@ const questionInit = require("./database/TriviaQuestions/QuestionInit");
 const socketIO = require('socket.io');
 const app = express();
 const bodyparser = require('body-parser');
+const connection = require("./endpoints/game/GameConnection");
 
 // --- Wurde vorher benutzt und falls es später Probleme geben sollte diesen statt app.use(cors) nuutzen ---
 // app.use("*", cors());
@@ -39,10 +40,6 @@ database((err) => {
 
 const server = http.createServer(app)
 
-//_____________________________________________Prototyp Testing_______________________________________________________//
-
-const connection = require("./endpoints/game/GameConnection");
-
 const io = socketIO(server, {
     cors: {
         origin: "*",
@@ -52,16 +49,5 @@ const io = socketIO(server, {
 });
 
 connection(io.of('/api/game'));
-
-
-//_________________________________________________Notes______________________________________________________________//
-/*
-
-- Cors bei socketIO möglicherweise überarbeiten wenn der Token gesendet werden soll.
-
-*/
-
-
-//_____________________________________________Prototyp Testing___________________________________________________//
 
 server.listen(80);

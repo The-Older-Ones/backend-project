@@ -230,9 +230,4 @@ module.exports = connection;
 
           },
 }
-
-In der Config schreiben die Default sachen. -> rounds.
-
-
-
 */
