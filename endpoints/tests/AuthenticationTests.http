@@ -2,7 +2,7 @@ POST http://127.0.0.1/api/users
 Content-Type: application/json
 
 {
-    "userID": "veenco",
+    "userID": "marcus",
     "password": "12345678"
 }
 
@@ -27,7 +27,7 @@ Content-Type: application/json
 ###
 // Login success
 GET http://127.0.0.1/api/authenticate
-Authorization: Basic veenco:12345678
+Authorization: Basic marcus:12345678
 
 ###
 // Login success

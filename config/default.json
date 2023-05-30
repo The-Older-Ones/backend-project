@@ -1,7 +1,7 @@
 {
     "session": {
-        "tokenKey": "djghhhhuuwiwuewieuwieuriwu",
-        "timeout": 300000
+        "tokenKey": "lIUD7pur9Unj-HgpSAoGySD0TbRSE2",
+        "timeout": "24h"
     },
     "db": {
         "connectionOptions": {
