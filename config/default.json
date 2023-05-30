@@ -9,5 +9,8 @@
             "useUnifiedTopology": true
         },
         "connectionString": "mongodb://127.0.0.1/ProjectDB"
+    },
+    "game" : {
+        "rounds" : 5
     }
 }
