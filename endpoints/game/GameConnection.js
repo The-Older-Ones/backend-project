@@ -83,7 +83,13 @@ async function createGame(data) {
 
 function disconnect(data) {
 
-  const socketId = data.id === "transport close" ? this.id : data.id;
+  let socketId
+  if (data.id == "transport close" || typeof data.id === 'undefined') {
+    socketId = this.id;
+  } else {
+    socketId = data.id;
+  }
+
   const room = position[socketId];
 
   if (!room) {
@@ -92,7 +98,6 @@ function disconnect(data) {
   }
 
   delete lobbys[room].player[socketId];
-  delete position[socketId];
 
   console.log("Player left Lobby " + room)
 
@@ -105,11 +110,12 @@ function disconnect(data) {
   }
 
   if (socketId == lobbys[room].host) {
-    updateHost({ id: this.id, gameId: room })
+    updateHost({ id: socketId, gameId: room })
   }
 
-  gameSocket.to(room).emit("playerLeft", { playerID: this.id });
+  delete position[socketId];
 
+  gameSocket.to(room).emit("playerLeft", { playerID: this.id });
 }
 
 function authenticated(token) {
@@ -173,7 +179,7 @@ function joinLobby(data) {
 
 function updateHost(data) {
   const socketId = data.id ? data.id : this.id;
-  const room = data.gameId;
+  const room = position[socketId];
   const newHost = data.newHost ? data.newHost : Object.keys(lobbys[room].player)[0];
 
   const currentHost = lobbys[room].host
@@ -211,14 +217,22 @@ module.exports = connection;
                       player : { "socketID" : {
                                                   name : "playername",
                                                   auth : default false,
-                                                  points : initial 0
+                                                  points : initial 0,
+                                                  // answer : Erst Init wenn Game Start : String
                                   },
                                   "socketID" : ...
 
                       },
                       locked : default false,
-                      host : socket.ID of the creator
+                      host : socket.ID of the creator,
+                      // rounds : Erst Init wenn Game Start = default or individual : Number,
+                      // question : Erst Init wenn Game Start. Aktuelles Frageobj. aus DB : Obj gemapped
+
           },
 }
+
+In der Config schreiben die Default sachen. -> rounds.
+
+
 
 */
