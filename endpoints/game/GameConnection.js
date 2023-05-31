@@ -83,39 +83,35 @@ async function createGame(data) {
 
 function disconnect(data) {
 
-  let socketId
-  if (data.id == "transport close" || typeof data.id === 'undefined') {
-    socketId = this.id;
-  } else {
-    socketId = data.id;
-  }
+  const socket = data.socket ? data.socket : this;
 
-  const room = position[socketId];
+  const room = position[socket.id];
 
   if (!room) {
     console.log("Player left Game")
     return;
   }
 
-  delete lobbys[room].player[socketId];
+  delete lobbys[room].player[socket.id];
 
   console.log("Player left Lobby " + room)
 
-  const checkEmptiness = Object.keys(lobbys[room].player);
+  const checkEmptiness = Object.keys(lobbys[room].player).length;
 
   if (checkEmptiness === 0) {
     delete lobbys[room];
+    delete position[socket.id];
     console.log("Closed Lobby: " + room)
     return;
   }
 
-  if (socketId == lobbys[room].host) {
-    updateHost({ id: socketId, gameId: room })
+  if (socket.id == lobbys[room].host) {
+    updateHost({ socket: socket })
   }
 
-  delete position[socketId];
+  delete position[socket.id];
 
-  gameSocket.to(room).emit("playerLeft", { playerID: this.id });
+  gameSocket.to(room).emit("playerLeft", { playerID: socket.id });
 }
 
 function authenticated(token) {
@@ -156,7 +152,7 @@ function joinLobby(data) {
   }
 
   if (position[this.id]) {
-    disconnect({ id: this.id });
+    disconnect({ socket: this });
   }
 
   const lobbyMember = {};
@@ -178,30 +174,32 @@ function joinLobby(data) {
 }
 
 function updateHost(data) {
-  const socketId = data.id ? data.id : this.id;
-  const room = position[socketId];
+  const socket = data.socket ? data.socket : this;
+  const room = position[socket.id];
   const newHost = data.newHost ? data.newHost : Object.keys(lobbys[room].player)[0];
 
   const currentHost = lobbys[room].host
 
-  if (currentHost != socketId) {
-    socketId.emit("error", { message: "No permission to change the host", type: "critical" })
+  if (currentHost != socket.id) {
+    socket.emit("error", { message: "No permission to change the host", type: "critical" })
     return;
   }
 
   if (currentHost == newHost) {
-    socketId.emit("error", { message: "Already host", type: "critical" });
+    socket.emit("error", { message: "Already host", type: "critical" });
     return;
   }
 
   const playerInLobby = Object.keys(lobbys[room].player).filter((id) => id == newHost).length == 1;
 
   if (!playerInLobby) {
-    socketId.emit("error", { message: "Selected player is not in the lobby", type: "critical" });
+    socket.emit("error", { message: "Selected player is not in the lobby", type: "critical" });
     return;
   }
 
   lobbys[room].host = newHost;
+
+  console.log(lobbys[room].host);
 
   gameSocket.to(room).emit("updatedHost", { newHost: newHost });
 }
@@ -230,4 +228,8 @@ module.exports = connection;
 
           },
 }
+
+find { category : animals, difficult : 200}
+
+
 */
