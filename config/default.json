@@ -11,6 +11,11 @@
         "connectionString": "mongodb://127.0.0.1/ProjectDB"
     },
     "game" : {
-        "rounds" : 5
+        "defaultRounds" : 4,
+        "minRounds" : 3,
+        "maxRounds" : 30,
+        "defaultPlayerNumber" : 4,
+        "minPlayerNumber" : 2,
+        "maxPlayerNumber" : 6
     }
 }

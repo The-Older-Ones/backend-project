@@ -18,6 +18,12 @@ const connection = (io) => {
     playerSocket.on("joinLobby", joinLobby);
     playerSocket.on("updateHost", updateHost);
 
+    //----------------New--------------------
+
+    playerSocket.on("setRounds", setRounds);
+    playerSocket.on("setPlayerNumber", setPlayerNumber);
+
+
     //------- socket.on all handler -------//
     playerSocket.emit("connected", { message: "Connected successfully" });
   });
@@ -63,13 +69,16 @@ async function createGame(data) {
   lobbys[code] = {
     player: {
       [this.id]: {
+        socket: this,
         name: hostName,
         auth: verify,
         points: 0
       }
     },
     locked: false,
-    host: this.id
+    host: this.id,
+    playerNumber : config.game.defaultPlayerNumber,
+    rounds : config.game.defaultRounds
   };
 
   try {
@@ -111,7 +120,7 @@ function disconnect(data) {
 
   delete position[socket.id];
 
-  gameSocket.to(room).emit("playerLeft", { playerID: socket.id });
+  gameSocket.to(room).emit("playerLeft", { playerId: socket.id });
 }
 
 function authenticated(token) {
@@ -163,6 +172,7 @@ function joinLobby(data) {
   position[this.id] = lobbyId;
 
   lobbys[lobbyId].player[this.id] = {
+    socket: this,
     name: playerName,
     auth: verify,
     points: 0
@@ -204,6 +214,97 @@ function updateHost(data) {
   gameSocket.to(room).emit("updatedHost", { newHost: newHost });
 }
 
+function setRounds(data) {
+  const room = position[this.id];
+
+  if(!room || lobbys[room].host != this.id) {
+    this.emit("error", { message: "Not Authorized to change number of rounds", type: "critical" });
+    return;
+  }
+ 
+  if (!data.rounds) {
+    this.emit("error", { message: "data.rounds is not set. Number of rounds are unchanged", type: "critical" });
+    return;
+  }
+
+  const rounds = parseInt(data.rounds);
+  
+  if(!rounds){
+    this.emit("error", { message: "data.rounds is NaN. Number of rounds are unchanged", type: "critical" });
+    return;
+  }
+
+  if(rounds == lobbys[room].rounds){
+    this.emit("error", { message: 'Number of rounds already set to ${rounds}', type: "warning" });
+    return;
+  }
+
+  const minRounds = config.game.minRounds;
+  const maxRounds = config.game.maxRounds;
+
+  if(rounds < minRounds){
+    this.emit("error", { message: 'Selected number of rounds too low. Minimum Rounds : ${minRounds}', type: "critical" });
+    return;
+  }
+
+  if(rounds > maxRounds){
+    rounds = maxRounds;
+  }
+
+  lobbys[room].rounds = rounds;
+
+  gameSocket.to(room).emit("updatedRounds" , {rounds : rounds})
+
+}
+
+function setPlayerNumber(data){
+  const room = position[this.id];
+
+  if(!room || lobbys[room].host != this.id) {
+    this.emit("error", { message: "Not Authorized to change number of rounds", type: "critical" });
+    return;
+  }
+ 
+  if (!data.playerNumber) {
+    this.emit("error", { message: "data.playerNumber is not set. Number of players are unchanged", type: "critical" });
+    return;
+  }
+
+  const playerNumber = parseInt(data.playerNumber);
+  
+  if(!playerNumber){
+    this.emit("error", { message: "data.playerNumber is NaN. Number of players are unchanged", type: "critical" });
+    return;
+  }
+
+  if(playerNumber == lobbys[room].playerNumber){
+    this.emit("error", { message: 'Number of player already set to ${playerNumber}', type: "warning" });
+    return;
+  }
+
+  const minPlayer = config.game.minPlayerNumber;
+  const maxPlayer = config.game.maxPlayerNumber;
+
+  if(playerNumber < minPlayer){
+    this.emit("error", { message: 'Selected number of player too low. Minimum Player : ${minPlayer}', type: "critical" });
+    return;
+  }
+
+  if(playerNumber > maxPlayer){
+    playerNumber = maxPlayer;
+  }
+
+  lobbys[room].playerNumber = playerNumber;
+
+  gameSocket.to(room).emit("updatedPlayerNumber" , {playerNumber : playerNumber})
+}
+
+function startGame(data){
+
+}
+
+
+
 module.exports = connection;
 
 
@@ -213,6 +314,7 @@ module.exports = connection;
 - lobbys {
           "LobbyCode" {
                       player : { "socketID" : {
+                                                  socket : socket Obj.
                                                   name : "playername",
                                                   auth : default false,
                                                   points : initial 0,
@@ -223,13 +325,21 @@ module.exports = connection;
                       },
                       locked : default false,
                       host : socket.ID of the creator,
-                      // rounds : Erst Init wenn Game Start = default or individual : Number,
+                      playerNumber : beim Spiel erstellen auf default.
+                      rounds : Erst Init wenn Game Start = default or individual : Number,
                       // question : Erst Init wenn Game Start. Aktuelles Frageobj. aus DB : Obj gemapped
 
           },
 }
 
 find { category : animals, difficult : 200}
+
+
+disconnect wenn man während des games rausgeht -> getoutahere
+socket obj mit abgelegt
+, playerNumber init bei create game, 
+rounds init am start
+Game info muss zurückgegeben werden beim createGame
 
 
 */

@@ -61,5 +61,10 @@
       console.log(data.gameId)
       console.log(data.socketId)
     });
+
+    socket.on('error', function(data){
+      console.log(data.message)
+      console.log(data.type)
+    })
   </script>
 </html>
