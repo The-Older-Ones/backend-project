@@ -332,6 +332,26 @@ function setPlayerNumber(data) {
 }
 
 function startGame(data) {
+  const room = position[this.id];
+  if(!room){
+    this.emit('error', { message: 'Lobby is not available', type: "critical" })
+    return;
+  }
+
+  if(lobbys[room].host != this.id){
+    this.emit('error', { message: 'No permission to start the game', type: "critical" })
+    return;
+  }
+  
+  const playersInLobby = Object.keys(lobbys[room].player).length
+  const minPlayerNumber = config.game.minPlayerNumber;
+  
+  if(playersInLobby < minPlayerNumber){
+    this.emit('error', { message: 'Less than the minimum allowed. Minimum allowed is ${playerNumber}', type: "critical" })
+    return;
+  }
+
+  const list = data.list;
   
 }
 
