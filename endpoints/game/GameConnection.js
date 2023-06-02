@@ -234,6 +234,11 @@ function setRounds(data) {
     return;
   }
 
+  if(lobbys[room].locked){
+    this.emit("error", { message: "Game is already locked. No changes allowed", type: "critical" })
+    return;
+  }
+
   if(rounds == lobbys[room].rounds){
     this.emit("error", { message: 'Number of rounds already set to ${rounds}', type: "warning" });
     return;
@@ -274,6 +279,11 @@ function setPlayerNumber(data){
   
   if(!playerNumber){
     this.emit("error", { message: "data.playerNumber is NaN. Number of players are unchanged", type: "critical" });
+    return;
+  }
+
+  if(lobbys[room].locked){
+    this.emit("error", { message: "Game is already locked. No changes allowed", type: "critical" })
     return;
   }
 
