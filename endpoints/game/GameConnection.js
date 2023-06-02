@@ -404,4 +404,10 @@ module.exports = connection;
             "socketID" : "LobbyCode"
 }
 
+
+- giveQuestion (difficulty, category) -> speicher frage ab bei question;
+- setAnswer (answer) -> set die antwort bei answer bei this.id, alle geantwortet? evalution
+- evaluation -> sendet an alle in der Lobby die auswertung von einer Frage (Hilfsmethode also nicht mit FE socket ansprechbar), round == 0 dann entauswertung
+- fall 3 von 4 geantwortet , 4 disconnect -> einbauen das abfrage ob alle geantwortet haben wenn locked = true; wenn ja dann sende auswertung
+- 
 */
