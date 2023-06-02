@@ -11,6 +11,7 @@
         "connectionString": "mongodb://127.0.0.1/ProjectDB"
     },
     "game" : {
+        "difficultys" : ["100","200","300","600","1000"],
         "defaultRounds" : 4,
         "minRounds" : 3,
         "maxRounds" : 30,

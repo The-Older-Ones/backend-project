@@ -1,5 +1,6 @@
 const CategoryList = require ("../../database/TriviaQuestions/CategoryListModel");
 const Question = require("../../database/TriviaQuestions/QuestionModel")
+const config = require ("config");
 
 async function getCategoryList() {
     try {
@@ -35,9 +36,35 @@ async function getRandomQuestion(categoryQuestion, difficultyQuestion) {
   }
 }
 
+async function checkCategory(categories){
+
+  categories = [...new Set(categories)];
+  difficultys = config.game.difficultys;
+
+  const pipeline = [
+    { $match: { difficulty: { $in: difficultys }, category: { $in: categories } } },
+    { $group: { _id: {category : '$category', difficulty: '$difficulty'}}}
+  ];
+
+  const questionSet = await Question.aggregate(pipeline);
+
+  if(questionSet.length == categories.length * difficultys.length){
+    return;
+  }
+
+
+  
+  console.log(questionSet.length);
+  console.log(categories.length);
+  console.log(questionSet);
+
+  // rausfinden wer der Hurensohn ist und error ballern
+
+}
 
 
 module.exports = {
     getCategoryList,
-    getRandomQuestion
+    getRandomQuestion,
+    checkCategory
 }

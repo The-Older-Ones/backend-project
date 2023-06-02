@@ -16,20 +16,14 @@ database((err) => {
         console.log("Error: Could not connect to database " + err.message);
     } else {
         console.log("Successful: connection to the database established");
-        questionInit();
     }
 });
 
 async function testGetRandomQuestion() {
     // Call getRandomQuestion with sample category and difficulty
-    const result = await gameServices.getRandomQuestion("gaga", "200");
+    const result = await gameServices.checkCategory(["Vehicles","Vehiclsdes","Vehicles"])
   
-    // Check the result
-    if ('error' in result) {
-      console.error(result.error);
-    } else {
-      console.log('Random Question:', result);
-    }
+
   }
 
-  testGetRandomQuestion();
+  testGetRandomQuestion()
