@@ -331,7 +331,7 @@ function setPlayerNumber(data) {
   gameSocket.to(room).emit("updatedPlayerNumber", { playerNumber: playerNumber })
 }
 
-function startGame(data) {
+async function startGame(data) {
   const room = position[this.id];
   if(!room){
     this.emit('error', { message: 'Lobby is not available', type: "critical" })
@@ -350,6 +350,7 @@ function startGame(data) {
     this.emit('error', { message: 'Less than the minimum allowed. Minimum allowed is ${playerNumber}', type: "critical" })
     return;
   }
+
 
   const list = data.list;
   
