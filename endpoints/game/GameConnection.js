@@ -77,13 +77,18 @@ async function createGame(data) {
     },
     locked: false,
     host: this.id,
-    playerNumber : config.game.defaultPlayerNumber,
-    rounds : config.game.defaultRounds
+    playerNumber: config.game.defaultPlayerNumber,
+    rounds: config.game.defaultRounds
   };
 
   try {
     let list = await GameService.getCategoryList();
-    this.emit("gameCreated", { gameId: code, socketId: this.id, list: list });
+    const settings = {
+      list: list,
+      playerNumber: lobbys[code].playerNumber,
+      rounds: lobbys[code].rounds
+    }
+    this.emit("gameCreated", { gameId: code, socketId: this.id, settings: settings });
     this.join(code);
   } catch (error) {
     this.emit("error", { message: error.message, type: "critical" })
@@ -154,6 +159,12 @@ function joinLobby(data) {
     return;
   }
 
+  const playersInLobby = Object.keys(lobbys[lobbyId].player).length;
+  if (playersInLobby == lobbys[lobbyId].player.playerNumber) {
+    this.emit("error", { message: "Lobby is full", type: "critical" })
+    return;
+  }
+
   let verify = authenticated(token);
   if (verify.error) {
     this.emit("error", { message: verify.error, type: "warning" })
@@ -178,8 +189,14 @@ function joinLobby(data) {
     points: 0
   }
 
+  const settings = {
+    lobbyMember: lobbyMember,
+    playerNumber: lobbys[lobbyId].playerNumber,
+    rounds: lobbys[lobbyId].rounds
+  }
+
   this.join(lobbyId);
-  this.emit('joinedLobby', { gameId: lobbyId, socketId: this.id, lobbyMember: lobbyMember });
+  this.emit('joinedLobby', { gameId: lobbyId, socketId: this.id, settings: settings });
   gameSocket.to(lobbyId).emit("playerJoined", { playerId: this.id, playerName: playerName });
 }
 
@@ -217,29 +234,29 @@ function updateHost(data) {
 function setRounds(data) {
   const room = position[this.id];
 
-  if(!room || lobbys[room].host != this.id) {
+  if (!room || lobbys[room].host != this.id) {
     this.emit("error", { message: "Not Authorized to change number of rounds", type: "critical" });
     return;
   }
- 
+
   if (!data.rounds) {
     this.emit("error", { message: "data.rounds is not set. Number of rounds are unchanged", type: "critical" });
     return;
   }
 
   const rounds = parseInt(data.rounds);
-  
-  if(!rounds){
+
+  if (!rounds) {
     this.emit("error", { message: "data.rounds is NaN. Number of rounds are unchanged", type: "critical" });
     return;
   }
 
-  if(lobbys[room].locked){
+  if (lobbys[room].locked) {
     this.emit("error", { message: "Game is already locked. No changes allowed", type: "critical" })
     return;
   }
 
-  if(rounds == lobbys[room].rounds){
+  if (rounds == lobbys[room].rounds) {
     this.emit("error", { message: 'Number of rounds already set to ${rounds}', type: "warning" });
     return;
   }
@@ -247,47 +264,52 @@ function setRounds(data) {
   const minRounds = config.game.minRounds;
   const maxRounds = config.game.maxRounds;
 
-  if(rounds < minRounds){
+  if (rounds < minRounds) {
     this.emit("error", { message: 'Selected number of rounds too low. Minimum Rounds : ${minRounds}', type: "critical" });
     return;
   }
 
-  if(rounds > maxRounds){
+  if (rounds > maxRounds) {
     rounds = maxRounds;
   }
 
   lobbys[room].rounds = rounds;
 
-  gameSocket.to(room).emit("updatedRounds" , {rounds : rounds})
+  gameSocket.to(room).emit("updatedRounds", { rounds: rounds })
 
 }
 
-function setPlayerNumber(data){
+function setPlayerNumber(data) {
   const room = position[this.id];
 
-  if(!room || lobbys[room].host != this.id) {
+  if (!room || lobbys[room].host != this.id) {
     this.emit("error", { message: "Not Authorized to change number of rounds", type: "critical" });
     return;
   }
- 
+
   if (!data.playerNumber) {
     this.emit("error", { message: "data.playerNumber is not set. Number of players are unchanged", type: "critical" });
     return;
   }
 
   const playerNumber = parseInt(data.playerNumber);
-  
-  if(!playerNumber){
+
+  if (!playerNumber) {
     this.emit("error", { message: "data.playerNumber is NaN. Number of players are unchanged", type: "critical" });
     return;
   }
 
-  if(lobbys[room].locked){
+  if (lobbys[room].locked) {
     this.emit("error", { message: "Game is already locked. No changes allowed", type: "critical" })
     return;
   }
+  const playersInLobby = Object.keys(lobbys[room].player).length;
+  if (playerNumber < playersInLobby) {
+    this.emit("error", { message: "Player number can't be changed to a number below to the players in the lobby", type: "critical" })
+    return;
+  }
 
-  if(playerNumber == lobbys[room].playerNumber){
+  if (playerNumber == lobbys[room].playerNumber) {
     this.emit("error", { message: 'Number of player already set to ${playerNumber}', type: "warning" });
     return;
   }
@@ -295,22 +317,22 @@ function setPlayerNumber(data){
   const minPlayer = config.game.minPlayerNumber;
   const maxPlayer = config.game.maxPlayerNumber;
 
-  if(playerNumber < minPlayer){
+  if (playerNumber < minPlayer) {
     this.emit("error", { message: 'Selected number of player too low. Minimum Player : ${minPlayer}', type: "critical" });
     return;
   }
 
-  if(playerNumber > maxPlayer){
+  if (playerNumber > maxPlayer) {
     playerNumber = maxPlayer;
   }
 
   lobbys[room].playerNumber = playerNumber;
 
-  gameSocket.to(room).emit("updatedPlayerNumber" , {playerNumber : playerNumber})
+  gameSocket.to(room).emit("updatedPlayerNumber", { playerNumber: playerNumber })
 }
 
-function startGame(data){
-
+function startGame(data) {
+  
 }
 
 
