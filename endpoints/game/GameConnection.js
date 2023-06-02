@@ -22,6 +22,7 @@ const connection = (io) => {
 
     playerSocket.on("setRounds", setRounds);
     playerSocket.on("setPlayerNumber", setPlayerNumber);
+    playerSocket.on("startGame", startGame);
 
 
     //------- socket.on all handler -------//
@@ -332,28 +333,42 @@ function setPlayerNumber(data) {
 }
 
 async function startGame(data) {
-  const room = position[this.id];
-  if(!room){
-    this.emit('error', { message: 'Lobby is not available', type: "critical" })
-    return;
-  }
+  try {
+    const room = position[this.id];
+    if (!room) {
+      this.emit('error', { message: 'Lobby is not available', type: "critical" })
+      return;
+    }
 
-  if(lobbys[room].host != this.id){
-    this.emit('error', { message: 'No permission to start the game', type: "critical" })
-    return;
-  }
-  
-  const playersInLobby = Object.keys(lobbys[room].player).length
-  const minPlayerNumber = config.game.minPlayerNumber;
-  
-  if(playersInLobby < minPlayerNumber){
-    this.emit('error', { message: 'Less than the minimum allowed. Minimum allowed is ${playerNumber}', type: "critical" })
-    return;
-  }
+    if (lobbys[room].host != this.id) {
+      this.emit('error', { message: 'No permission to start the game', type: "critical" })
+      return;
+    }
 
+    const playersInLobby = Object.keys(lobbys[room].player).length
+    const minPlayerNumber = config.game.minPlayerNumber;
 
-  const list = data.list;
-  
+    if (playersInLobby < minPlayerNumber) {
+      this.emit('error', { message: 'Less than the minimum allowed. Minimum allowed is ${playerNumber}', type: "critical" })
+      return;
+    }
+
+    const list = data.list;
+
+    if (!list || !Array.isArray(list)) {
+      this.emit('error', { message: 'data.list is either not stored or it is not an array', type: "critical" })
+      return;
+    }
+
+    await GameService.checkCategory(list);
+
+    lobbys[room].locked = true;
+
+    gameSocket.to(room).emit("startedGame");
+
+  } catch (error) {
+    gameSocket.to(room).emit("error", { message: error.message, type: "critical" });
+  }
 }
 
 
@@ -385,14 +400,8 @@ module.exports = connection;
           },
 }
 
-find { category : animals, difficult : 200}
-
-
-disconnect wenn man während des games rausgeht -> getoutahere
-socket obj mit abgelegt
-, playerNumber init bei create game, 
-rounds init am start
-Game info muss zurückgegeben werden beim createGame
-
+- position {
+            "socketID" : "LobbyCode"
+}
 
 */

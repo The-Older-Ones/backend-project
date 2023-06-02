@@ -84,7 +84,6 @@ async function checkCategory(categories) {
   }
 }
 
-
 module.exports = {
   getCategoryList,
   getRandomQuestion,
