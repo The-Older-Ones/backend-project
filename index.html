@@ -66,5 +66,11 @@
       console.log(data.message)
       console.log(data.type)
     })
+
+    socket.on('playerJoined', function(data){
+      console.log(data.playerId)
+      console.log(data.playerName)
+    })
+
   </script>
 </html>

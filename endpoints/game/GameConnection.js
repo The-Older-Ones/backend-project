@@ -186,6 +186,7 @@ function joinLobby(data) {
   Object.keys(lobbys[lobbyId].player).forEach((socketID) => {
     lobbyMember[socketID] = lobbys[lobbyId].player[socketID].name;
   });
+  lobbyMember[this.id] = playerName;
 
   position[this.id] = lobbyId;
 
@@ -460,6 +461,8 @@ function check(room){
   })
   return checked;
 }
+
+
 
 function calculatePointsRound(data){
   //Points after every round
