@@ -23,7 +23,7 @@ const connection = (io) => {
     playerSocket.on("setRounds", setRounds);
     playerSocket.on("setPlayerNumber", setPlayerNumber);
     playerSocket.on("startGame", startGame);
-
+    playerSocket.on("giveQuestion", giveQuestion);
 
     //------- socket.on all handler -------//
     playerSocket.emit("connected", { message: "Connected successfully" });
@@ -372,7 +372,43 @@ async function startGame(data) {
   }
 }
 
+async function giveQuestion(data) {
+  try {
+    const room = position[this.id];
+    if (!room) {
+      this.emit('error', { message: 'Lobby is not available', type: "critical" })
+      return;
+    }
 
+    if(!lobbys[room].locked){
+      this.emit('error', { message: 'Lobby is not locked', type: "critical" })
+      return;
+    }
+
+    const category = data.category;
+    const difficulty = data.difficulty;
+
+    if (!category || !difficulty) {
+      const problem = !category ? "category" : "difficulty"
+      this.emit('error', { message: `${problem} is not given`, type: "critical" });
+      return;
+    }
+
+    const question = await GameService.getRandomQuestion(category, difficulty);
+    
+    lobbys[room].question = question;
+
+    const userQuestion = {
+      question: question.question,
+      answers: question.allAnswers
+    }
+
+    gameSocket.to(room).emit("givenQuestion", userQuestion);
+
+  } catch (error) {
+    this.emit("error", { message: error.message, type: "critical" });
+  }
+}
 
 module.exports = connection;
 
