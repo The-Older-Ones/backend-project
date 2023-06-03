@@ -90,6 +90,7 @@ async function createGame(data) {
       playerNumber: lobbys[code].playerNumber,
       rounds: lobbys[code].rounds
     }
+    //Zusatz FE hostname
     this.emit("gameCreated", { gameId: code, socketId: this.id, hostName: hostName, settings: settings });
     this.join(code);
   } catch (error) {
@@ -123,7 +124,7 @@ function disconnect(data) {
   }
 
   if(checkEmptiness === 1 && lobbys[room].locked){
-    //reset
+    reset(room)
   }
 
   if (socket.id == lobbys[room].host) {
@@ -190,6 +191,7 @@ function joinLobby(data) {
   Object.keys(lobbys[lobbyId].player).forEach((socketID) => {
     lobbyMember[socketID] = lobbys[lobbyId].player[socketID].name;
   });
+  //Zusatz FE
   lobbyMember[this.id] = playerName;
 
   position[this.id] = lobbyId;
@@ -538,14 +540,7 @@ module.exports = connection;
             "socketID" : "LobbyCode"
 }
 
-
-- setAnswer (answer) -> set die antwort bei answer bei this.id, alle geantwortet? evaluation  -> if rounds -2 = 0 dann last round iwas
-- reset methode zum rückgang in die lobby.
-- evaluation -> sendet an alle in der Lobby die auswertung von einer Frage (Hilfsmethode also nicht mit FE socket ansprechbar), round == 0 dann entauswertung
+- evaluation -> sendet an alle in der Lobby die auswertung von einer Frage (Hilfsmethode also nicht mit FE socket ansprechbar), round == 0 dann entauswertung // round -2 = 0 
 - Teilevaluation - nach jeder Frage/Runde 
 - Gesamtevaluation - Gesamte Auswertung
-- Checker: um zu schauen geantwortet haben
-
-- fall 3 von 4 geantwortet , 4 disconnect -> einbauen das abfrage ob alle geantwortet haben wenn locked = true; wenn ja dann sende auswertung
-- fall nur noch 1 Spieler im locked Game = Game bricht ab und zurück zur lobby
 */
