@@ -25,6 +25,7 @@ const connection = (io) => {
     playerSocket.on("startGame", startGame);
     playerSocket.on("giveQuestion", giveQuestion);
     playerSocket.on("setAnswer", setAnswer);
+    playerSocket.on("setExtension", setExtension);
 
     //------- socket.on all handler -------//
     playerSocket.emit("connected", { message: "Connected successfully" });
@@ -80,7 +81,8 @@ async function createGame(data) {
     locked: false,
     host: this.id,
     playerNumber: config.game.defaultPlayerNumber,
-    rounds: config.game.defaultRounds
+    rounds: config.game.defaultRounds,
+    extension : false
   };
 
   try {
@@ -98,7 +100,7 @@ async function createGame(data) {
   }
 }
 
-// Hier kommt was dazu für 2 cases
+// Hier kommt was dazu für 1 cases
 function disconnect(data) {
 
   const socket = data.socket ? data.socket : this;
@@ -345,6 +347,28 @@ function setPlayerNumber(data) {
   gameSocket.to(room).emit("updatedPlayerNumber", { playerNumber: playerNumber })
 }
 
+function setExtension(data){
+  const room = position[this.id];
+
+  if (!room || lobbys[room].host != this.id) {
+    this.emit("error", { message: "Not Authorized to activate extension", type: "critical" });
+    return;
+  }
+
+  if(lobbys[room].locked){
+    this.emit('error', { message: 'Game already started', type: "critical" })
+    return;
+  }
+
+  if(data.extension){
+    lobbys[room].extension = true;
+  } else {
+    lobbys[room].extension = false;
+  }
+
+  gameSocket.to(room).emit("updatedExtension", {extension : lobbys[room].extension});
+}
+
 async function startGame(data) {
   try {
     const room = position[this.id];
@@ -355,6 +379,11 @@ async function startGame(data) {
 
     if (lobbys[room].host != this.id) {
       this.emit('error', { message: 'No permission to start the game', type: "critical" })
+      return;
+    }
+
+    if(lobbys[room].locked){
+      this.emit('error', { message: 'Game already started', type: "critical" })
       return;
     }
 
@@ -386,7 +415,7 @@ async function startGame(data) {
 
 async function giveQuestion(data) {
   try {
-    // TODO Feature Training -> auch möglich wenn valider Token mitgeliefert wird
+    // TODO Feature Training -> auch möglich wenn valider Token mitgeliefert wird | rounds = 0 behandlung
     const room = position[this.id];
     if (!room) {
       this.emit('error', { message: 'Lobby is not available', type: "critical" })
@@ -499,12 +528,8 @@ function reset(room){
   gameSocket.to(room).emit("resetLobby", {settings: settings})
 }
 
-function calculatePointsRound(data) {
-  //Points after every round
-}
-
-function calculatePointsAndResult(data) {
-  //Points after all rounds and result
+function evaluation (room){
+  
 }
 
 
@@ -532,6 +557,7 @@ module.exports = connection;
                       playerNumber : beim Spiel erstellen auf default.
                       rounds : Erst Init wenn Game Start = default or individual : Number,
                       // question : Erst Init wenn Game Start. Aktuelles Frageobj. aus DB : Obj gemapped
+                      // extension : number ++
 
           },
 }
@@ -540,7 +566,23 @@ module.exports = connection;
             "socketID" : "LobbyCode"
 }
 
-- evaluation -> sendet an alle in der Lobby die auswertung von einer Frage (Hilfsmethode also nicht mit FE socket ansprechbar), round == 0 dann entauswertung // round -2 = 0 
-- Teilevaluation - nach jeder Frage/Runde 
-- Gesamtevaluation - Gesamte Auswertung
+- evaluation -> sendet an alle in der Lobby die auswertung von einer Frage (Hilfsmethode also nicht mit FE socket ansprechbar)
+
+Abfrage über verbleibende Runden on T oder G
+------------------------------------------------------
+ Teilevaluation - nach jeder Frage/Runde 
+{
+  socketId : {Points,answer true?}
+  socketId...
+},
+rightAnswer : ...,
+roundsLeft : ...,
+------------------------------------------------------
+Gesamtevaluation - Gesamte Auswertung
+
+- wenn gleichstand = rounds + 1
+
+
+
+
 */

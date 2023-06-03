@@ -23,6 +23,9 @@
     <form id="form2" action="">
       <input id="input2" autocomplete="off" /><button>Join</button>
     </form>
+    <form id="form3" action="">
+      <input id="input3" autocomplete="off" /><button>Entername</button>
+    </form>
   </body>
   <!-- Die script Zeile wurde auch erst nach Hello World eingefügt -->
   <script src="https://cdn.socket.io/4.3.1/socket.io.min.js"></script>
@@ -33,7 +36,10 @@
     var form = document.getElementById('form');
     var form2 = document.getElementById('form2');
     var input2 = document.getElementById('input2');
+    var form3 = document.getElementById('form3');
+    var input3 = document.getElementById('input3');
     var input = document.getElementById('input');
+    var name ="";
   
     form.addEventListener('submit', function(e) {
       e.preventDefault();
@@ -46,8 +52,16 @@
     form2.addEventListener('submit', function(e) {
       e.preventDefault();
       if (input2.value) {
-        socket.emit('joinLobby', {gameId: input2.value, playerName : input2.value});
+        socket.emit('joinLobby', {gameId: input2.value, playerName : name});
         input2.value = '';
+      }
+    });
+
+    form3.addEventListener('submit', function(e) {
+      e.preventDefault();
+      if (input3.value) {
+        name = input3.value
+        input3.value = '';
       }
     });
   

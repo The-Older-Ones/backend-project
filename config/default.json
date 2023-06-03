@@ -17,6 +17,7 @@
         "maxRounds" : 30,
         "defaultPlayerNumber" : 4,
         "minPlayerNumber" : 2,
-        "maxPlayerNumber" : 6
+        "maxPlayerNumber" : 6,
+        "maxExtension" : 1
     }
 }
