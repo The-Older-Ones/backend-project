@@ -528,8 +528,25 @@ function reset(room){
   gameSocket.to(room).emit("resetLobby", {settings: settings})
 }
 
-function evaluation (room){
+function evaluation(room){
+  const lobbyRoom = lobbys[room];
+
+  const players = Objekt.keys(lobbyRoom.player)
+
+  players.forEach(playerId => {
+  const answers = lobbyRoom.player[playerId].answer
+  if(answers == lobbyRoom.question.correct_answer){
+    const points = parseInt(lobbyRoom.question.difficulty);
+    lobbyRoom.player[playerId].points += points;
+  }
+  })
+  lobbyRoom.rounds--;
+
   
+  if(lobbyRoom.rounds === 0 && lobbyRoom.extension == false){
+    lobbyRoom.player[playerId].points
+    
+  }
 }
 
 
