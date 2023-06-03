@@ -21,9 +21,8 @@ database((err) => {
 
 async function testGetRandomQuestion() {
     // Call getRandomQuestion with sample category and difficulty
-    const result = await gameServices.checkCategory(["Vehicles","Sports","Huhrensohn"])
-  
-
+    const result = await gameServices.getRandomQuestion("Vehicles",300)
+    console.log(result)
   }
 
   testGetRandomQuestion()

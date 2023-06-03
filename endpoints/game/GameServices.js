@@ -22,17 +22,20 @@ async function getRandomQuestion(categoryQuestion, difficultyQuestion) {
     const randomIndex = Math.floor(Math.random() * questions.length);
     const randomQuestion = questions[randomIndex];
 
+    const correctAnswerIndex = Math.floor(Math.random() * (randomQuestion.incorrect_answers.length + 1))
+    const allAnswers = [...randomQuestion.incorrect_answers];
+    allAnswers.splice(correctAnswerIndex, 0, randomQuestion.correct_answer);
+
     const questionObject = {
-      "category": randomQuestion.category,
+      "allAnswers": allAnswers,
       "difficulty": randomQuestion.difficulty,
       "question": randomQuestion.question,
-      "correct_answer": randomQuestion.correct_answer,
-      "incorrect_answers": randomQuestion.incorrect_answers
+      "correct_answer": randomQuestion.correct_answer
     };
 
     return questionObject;
   } catch (error) {
-    throw new Error('An error occurred while retrieving the question. + ${error.message}');
+    throw new Error(`An error occurred while retrieving the question. ${error.message}`);
   }
 }
 
@@ -77,10 +80,10 @@ async function checkCategory(categories) {
 
     // Hier noch einfügen das aus der DB rausgefickt wird bzw auf eisgelegt, Danke, bitte tschau. gez. die freundliche Spinne aus der Nachbarschaft
 
-    throw new Error('${missing.category} does not have enough questions for all difficulties');
+    throw new Error(`${missing.category} does not have enough questions for all difficulties`);
 
   } catch (error) {
-    throw new Error('An error occurred while checking the category. + ${error.message}');
+    throw new Error(`An error occurred while checking the category. + ${error.message}`);
   }
 }
 

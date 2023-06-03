@@ -96,6 +96,7 @@ async function createGame(data) {
   }
 }
 
+// Hier kommt was dazu für 2 cases
 function disconnect(data) {
 
   const socket = data.socket ? data.socket : this;
@@ -258,7 +259,7 @@ function setRounds(data) {
   }
 
   if (rounds == lobbys[room].rounds) {
-    this.emit("error", { message: 'Number of rounds already set to ${rounds}', type: "warning" });
+    this.emit("error", { message: `Number of rounds already set to ${rounds}`, type: "warning" });
     return;
   }
 
@@ -266,7 +267,7 @@ function setRounds(data) {
   const maxRounds = config.game.maxRounds;
 
   if (rounds < minRounds) {
-    this.emit("error", { message: 'Selected number of rounds too low. Minimum Rounds : ${minRounds}', type: "critical" });
+    this.emit("error", { message: `Selected number of rounds too low. Minimum Rounds : ${minRounds}`, type: "critical" });
     return;
   }
 
@@ -311,7 +312,7 @@ function setPlayerNumber(data) {
   }
 
   if (playerNumber == lobbys[room].playerNumber) {
-    this.emit("error", { message: 'Number of player already set to ${playerNumber}', type: "warning" });
+    this.emit("error", { message: `Number of player already set to ${playerNumber}`, type: "warning" });
     return;
   }
 
@@ -319,7 +320,7 @@ function setPlayerNumber(data) {
   const maxPlayer = config.game.maxPlayerNumber;
 
   if (playerNumber < minPlayer) {
-    this.emit("error", { message: 'Selected number of player too low. Minimum Player : ${minPlayer}', type: "critical" });
+    this.emit("error", { message: `Selected number of player too low. Minimum Player : ${minPlayer}`, type: "critical" });
     return;
   }
 
@@ -349,7 +350,7 @@ async function startGame(data) {
     const minPlayerNumber = config.game.minPlayerNumber;
 
     if (playersInLobby < minPlayerNumber) {
-      this.emit('error', { message: 'Less than the minimum allowed. Minimum allowed is ${playerNumber}', type: "critical" })
+      this.emit('error', { message: `Less than the minimum allowed. Minimum allowed is ${playerNumber}`, type: "critical" })
       return;
     }
 
@@ -405,9 +406,11 @@ module.exports = connection;
 }
 
 
-- giveQuestion (difficulty, category) -> speicher frage ab bei question;
-- setAnswer (answer) -> set die antwort bei answer bei this.id, alle geantwortet? evalution
+- async giveQuestion (difficulty, category) -> speicher frage ab bei question;
+- setAnswer (answer) -> set die antwort bei answer bei this.id, alle geantwortet? evalution  -> if rounds -2 = 0 dann last round iwas
+- reset methode zum rückgang in die lobby.
 - evaluation -> sendet an alle in der Lobby die auswertung von einer Frage (Hilfsmethode also nicht mit FE socket ansprechbar), round == 0 dann entauswertung
+
 - fall 3 von 4 geantwortet , 4 disconnect -> einbauen das abfrage ob alle geantwortet haben wenn locked = true; wenn ja dann sende auswertung
-- 
+- fall nur noch 1 Spieler im locked Game = Game bricht ab und zurück zur lobby
 */
