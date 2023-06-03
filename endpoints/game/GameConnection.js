@@ -24,6 +24,7 @@ const connection = (io) => {
     playerSocket.on("setPlayerNumber", setPlayerNumber);
     playerSocket.on("startGame", startGame);
     playerSocket.on("giveQuestion", giveQuestion);
+    playerSocket.on("setAnswer", setAnswer);
 
     //------- socket.on all handler -------//
     playerSocket.emit("connected", { message: "Connected successfully" });
@@ -128,6 +129,10 @@ function disconnect(data) {
   delete position[socket.id];
 
   gameSocket.to(room).emit("playerLeft", { playerId: socket.id });
+
+  if(check(room)){
+    //evaluation
+  }
 }
 
 function authenticated(token) {
@@ -374,13 +379,14 @@ async function startGame(data) {
 
 async function giveQuestion(data) {
   try {
+    // TODO Feature Training -> auch möglich wenn valider Token mitgeliefert wird
     const room = position[this.id];
     if (!room) {
       this.emit('error', { message: 'Lobby is not available', type: "critical" })
       return;
     }
 
-    if(!lobbys[room].locked){
+    if (!lobbys[room].locked) {
       this.emit('error', { message: 'Lobby is not locked', type: "critical" })
       return;
     }
@@ -395,7 +401,7 @@ async function giveQuestion(data) {
     }
 
     const question = await GameService.getRandomQuestion(category, difficulty);
-    
+
     lobbys[room].question = question;
 
     const userQuestion = {
@@ -409,6 +415,61 @@ async function giveQuestion(data) {
     this.emit("error", { message: error.message, type: "critical" });
   }
 }
+
+function setAnswer(data) {
+  const room = position[this.id];
+  if (!room) {
+    this.emit('error', { message: 'Lobby is not available', type: "critical" })
+    return;
+  }
+
+  if (!lobbys[room].locked) {
+    this.emit('error', { message: 'Lobby is not locked', type: "critical" })
+    return;
+  }
+
+  if (!data.answer) {
+    this.emit('error', { message: 'No answer received', type: "critical" })
+    return;
+  }
+
+  if (lobbys[room].player[this.id].answer) {
+    const origAnswer = lobbys[room].player[this.id].answer
+    this.emit('error', { message: `Already gave an answer: ${origAnswer}`, type: "critical" })
+    return;
+  }
+
+  lobbys[room].player[this.id].answer = data.answer.toString();
+
+  if(check(room)){
+  // evaluation
+  } else {
+  gameSocket.to(room).emit("playerAnswered", { playerId: this.id })
+  }
+
+}
+
+function check(room){
+  const players = Object.keys(lobbys[room].player);
+  let checked = true;
+  players.forEach(playerId => {
+    if(!lobbys[room].player[playerId].answer){
+      checked = false;
+      return;
+    } 
+  })
+  return checked;
+}
+
+function calculatePointsRound(data){
+  //Points after every round
+}
+
+function calculatePointsAndResult(data){
+  //Points after all rounds and result
+}
+
+
 
 module.exports = connection;
 
@@ -442,10 +503,12 @@ module.exports = connection;
 }
 
 
-- async giveQuestion (difficulty, category) -> speicher frage ab bei question;
-- setAnswer (answer) -> set die antwort bei answer bei this.id, alle geantwortet? evalution  -> if rounds -2 = 0 dann last round iwas
+- setAnswer (answer) -> set die antwort bei answer bei this.id, alle geantwortet? evaluation  -> if rounds -2 = 0 dann last round iwas
 - reset methode zum rückgang in die lobby.
 - evaluation -> sendet an alle in der Lobby die auswertung von einer Frage (Hilfsmethode also nicht mit FE socket ansprechbar), round == 0 dann entauswertung
+- Teilevaluation - nach jeder Frage/Runde 
+- Gesamtevaluation - Gesamte Auswertung
+- Checker: um zu schauen geantwortet haben
 
 - fall 3 von 4 geantwortet , 4 disconnect -> einbauen das abfrage ob alle geantwortet haben wenn locked = true; wenn ja dann sende auswertung
 - fall nur noch 1 Spieler im locked Game = Game bricht ab und zurück zur lobby
