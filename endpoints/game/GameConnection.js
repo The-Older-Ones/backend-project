@@ -66,27 +66,28 @@ async function createGame(data) {
   if (position[this.id]) {
     disconnect({ id: this.id });
   }
-
-  position[this.id] = code;
-
-  lobbys[code] = {
-    player: {
-      [this.id]: {
-        socket: this,
-        name: hostName,
-        auth: verify,
-        points: 0
-      }
-    },
-    locked: false,
-    host: this.id,
-    playerNumber: config.game.defaultPlayerNumber,
-    rounds: config.game.defaultRounds,
-    extension : false
-  };
-
   try {
     let list = await GameService.getCategoryList();
+
+    position[this.id] = code;
+    
+    lobbys[code] = {
+      player: {
+        [this.id]: {
+          socket: this,
+          name: hostName,
+          auth: verify,
+          points: 0
+        }
+      },
+      list : list,
+      locked: false,
+      host: this.id,
+      playerNumber: config.game.defaultPlayerNumber,
+      rounds: config.game.defaultRounds,
+      extension: false
+    };
+
     const settings = {
       list: list,
       playerNumber: lobbys[code].playerNumber,
@@ -125,7 +126,7 @@ function disconnect(data) {
     return;
   }
 
-  if(checkEmptiness === 1 && lobbys[room].locked){
+  if (checkEmptiness === 1 && lobbys[room].locked) {
     reset(room)
   }
 
@@ -208,7 +209,8 @@ function joinLobby(data) {
   const settings = {
     lobbyMember: lobbyMember,
     playerNumber: lobbys[lobbyId].playerNumber,
-    rounds: lobbys[lobbyId].rounds
+    rounds: lobbys[lobbyId].rounds,
+    list : lobbys[lobbyId].list
   }
 
   this.join(lobbyId);
@@ -243,6 +245,8 @@ function updateHost(data) {
   lobbys[room].host = newHost;
 
   console.log(lobbys[room].host);
+
+  // Feature : User eigene Fragen.  Nochmalige DB anfrage für list + ablegen in lobbys objekt,
 
   gameSocket.to(room).emit("updatedHost", { newHost: newHost });
 }
@@ -347,7 +351,7 @@ function setPlayerNumber(data) {
   gameSocket.to(room).emit("updatedPlayerNumber", { playerNumber: playerNumber })
 }
 
-function setExtension(data){
+function setExtension(data) {
   const room = position[this.id];
 
   if (!room || lobbys[room].host != this.id) {
@@ -355,18 +359,18 @@ function setExtension(data){
     return;
   }
 
-  if(lobbys[room].locked){
+  if (lobbys[room].locked) {
     this.emit('error', { message: 'Game already started', type: "critical" })
     return;
   }
 
-  if(data.extension){
+  if (data.extension) {
     lobbys[room].extension = true;
   } else {
     lobbys[room].extension = false;
   }
 
-  gameSocket.to(room).emit("updatedExtension", {extension : lobbys[room].extension});
+  gameSocket.to(room).emit("updatedExtension", { extension: lobbys[room].extension });
 }
 
 async function startGame(data) {
@@ -382,7 +386,7 @@ async function startGame(data) {
       return;
     }
 
-    if(lobbys[room].locked){
+    if (lobbys[room].locked) {
       this.emit('error', { message: 'Game already started', type: "critical" })
       return;
     }
@@ -497,23 +501,23 @@ function check(room) {
   return checked;
 }
 
-function reset(room){
+function reset(room) {
   lobbys[room].locked = false;
   lobbys[room].rounds = config.game.defaultRounds;
 
   const players = Object.keys(lobbys[room].player);
   players.forEach(playerId => {
     lobbys[room].player[playerId].points = 0;
-    if(lobbys[room].player[playerId].answer){
+    if (lobbys[room].player[playerId].answer) {
       delete lobbys[room].player[playerId].answer;
     }
   })
-  
-  if(lobbys[room].question){
+
+  if (lobbys[room].question) {
     delete lobbys[room].question;
   }
 
-  
+
   const lobbyMember = {};
   Object.keys(lobbys[lobbyId].player).forEach((socketID) => {
     lobbyMember[socketID] = lobbys[lobbyId].player[socketID].name;
@@ -525,27 +529,30 @@ function reset(room){
     lobbyMember: lobbyMember
   }
 
-  gameSocket.to(room).emit("resetLobby", {settings: settings})
+  gameSocket.to(room).emit("resetLobby", { settings: settings })
 }
 
-function evaluation(room){
+function evaluation(room) {
   const lobbyRoom = lobbys[room];
 
   const players = Objekt.keys(lobbyRoom.player)
 
-  players.forEach(playerId => {
-  const answers = lobbyRoom.player[playerId].answer
-  if(answers == lobbyRoom.question.correct_answer){
-    const points = parseInt(lobbyRoom.question.difficulty);
-    lobbyRoom.player[playerId].points += points;
-  }
-  })
+  const rückgabe = players.map(playerId => {
+    const answers = lobbyRoom.player[playerId].answer;
+    if (answers == lobbyRoom.question.correct_answer) {
+      const points = parseInt(lobbyRoom.question.difficulty);
+      lobbyRoom.player[playerId].points += points;
+    } else {
+
+    }
+  });
+
   lobbyRoom.rounds--;
 
-  
-  if(lobbyRoom.rounds === 0 && lobbyRoom.extension == false){
+
+  if (lobbyRoom.rounds === 0 && lobbyRoom.extension == false) {
     lobbyRoom.player[playerId].points
-    
+
   }
 }
 
@@ -569,6 +576,7 @@ module.exports = connection;
                                   "socketID" : ...
 
                       },
+                      list : categoryListe,
                       locked : default false,
                       host : socket.ID of the creator,
                       playerNumber : beim Spiel erstellen auf default.
