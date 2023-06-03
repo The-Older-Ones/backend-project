@@ -26,6 +26,7 @@ const connection = (io) => {
     playerSocket.on("giveQuestion", giveQuestion);
     playerSocket.on("setAnswer", setAnswer);
     playerSocket.on("setExtension", setExtension);
+    playerSocket.on("newGame", newGame);
 
     //------- socket.on all handler -------//
     playerSocket.emit("connected", { message: "Connected successfully" });
@@ -101,7 +102,6 @@ async function createGame(data) {
   }
 }
 
-// Hier kommt was dazu für 1 cases
 function disconnect(data) {
 
   const socket = data.socket ? data.socket : this;
@@ -139,7 +139,7 @@ function disconnect(data) {
   gameSocket.to(room).emit("playerLeft", { playerId: socket.id });
 
   if (check(room)) {
-    //evaluation
+    evaluation(room);
   }
 }
 
@@ -175,6 +175,7 @@ function joinLobby(data) {
   }
 
   const playersInLobby = Object.keys(lobbys[lobbyId].player).length;
+
   if (playersInLobby == lobbys[lobbyId].player.playerNumber) {
     this.emit("error", { message: "Lobby is full", type: "critical" })
     return;
@@ -364,11 +365,7 @@ function setExtension(data) {
     return;
   }
 
-  if (data.extension) {
-    lobbys[room].extension = true;
-  } else {
-    lobbys[room].extension = false;
-  }
+  lobbys[room].extension = data.extension ? true : false;
 
   gameSocket.to(room).emit("updatedExtension", { extension: lobbys[room].extension });
 }
@@ -482,7 +479,7 @@ function setAnswer(data) {
   lobbys[room].player[this.id].answer = data.answer.toString();
 
   if (check(room)) {
-    // evaluation
+    evaluation(room);
   } else {
     gameSocket.to(room).emit("playerAnswered", { playerId: this.id })
   }
@@ -526,37 +523,71 @@ function reset(room) {
   const settings = {
     rounds: lobbys[room].rounds,
     playerNumber: lobbys[room].playerNumber,
-    lobbyMember: lobbyMember
+    lobbyMember: lobbyMember,
+    extension : false
   }
 
   gameSocket.to(room).emit("resetLobby", { settings: settings })
 }
 
 function evaluation(room) {
+
   const lobbyRoom = lobbys[room];
 
-  const players = Objekt.keys(lobbyRoom.player)
-
-  const rückgabe = players.map(playerId => {
-    const answers = lobbyRoom.player[playerId].answer;
-    if (answers == lobbyRoom.question.correct_answer) {
-      const points = parseInt(lobbyRoom.question.difficulty);
-      lobbyRoom.player[playerId].points += points;
-    } else {
-
+  const result = Object.entries(lobbyRoom.player).map(([socketId,properties]) =>{
+    let query = false;
+    if(properties.answer == lobbyRoom.question.correct_answer){
+      properties.points += parseInt(lobbyRoom.question.difficulty);
+      console.log(properties.points)
+      query = true;
     }
-  });
+    return({
+      [socketId] : {
+        points : properties.points,
+        answer : query
+      }
+    })
+  }).sort((a,b) =>{
+    const pointsA = Object.values(a)[0].points;
+    const pointsB = Object.values(b)[0].points;
+    return pointsB - pointsA;
+});
 
   lobbyRoom.rounds--;
 
+  if (lobbyRoom.rounds == 0 && !lobbyRoom.extension) {
+    gameSocket.to(room).emit("gameFinished",{leaderboard : result});
+    return;
+  };
 
-  if (lobbyRoom.rounds === 0 && lobbyRoom.extension == false) {
-    lobbyRoom.player[playerId].points
+  const first = result[0].points;
+  const second = result[1].points;
 
+  if (lobbyRoom.rounds == 0 && lobbyRoom.extension && first == second) {
+    lobbyRoom.rounds = config.game.maxExtension;
+    delete lobbyRoom.extension;
+    gameSocket.to(room).emit("extendedGame");
+  };
+
+  const status = {
+    rightAnswer : lobbyRoom.question.correct_answer,
+    roundsLeft : lobbyRoom.rounds,
+    leaderboard : result
   }
+
+  gameSocket.to(room).emit("roundFinished", status);
 }
 
+function newGame(data){
+  const room = position[this.id];
 
+  if (!room || lobbys[room].host != this.id) {
+    this.emit("error", { message: "Not Authorized to initialize new game", type: "critical" });
+    return;
+  }
+
+  reset(room);
+}
 
 module.exports = connection;
 
@@ -582,7 +613,7 @@ module.exports = connection;
                       playerNumber : beim Spiel erstellen auf default.
                       rounds : Erst Init wenn Game Start = default or individual : Number,
                       // question : Erst Init wenn Game Start. Aktuelles Frageobj. aus DB : Obj gemapped
-                      // extension : number ++
+                      // extension : boolean
 
           },
 }
@@ -605,7 +636,12 @@ roundsLeft : ...,
 ------------------------------------------------------
 Gesamtevaluation - Gesamte Auswertung
 
-- wenn gleichstand = rounds + 1
+[
+  { '100': { points: 99999, answer: false } },
+  { '999': { points: 766, answer: true } },
+  { asdasd: { points: 50, answer: false } },
+  { '1223': { points: 0, answer: false } }
+]
 
 
 
