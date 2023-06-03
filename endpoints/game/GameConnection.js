@@ -122,6 +122,10 @@ function disconnect(data) {
     return;
   }
 
+  if(checkEmptiness === 1 && lobbys[room].locked){
+    //reset
+  }
+
   if (socket.id == lobbys[room].host) {
     updateHost({ socket: socket })
   }
@@ -462,7 +466,36 @@ function check(room) {
   return checked;
 }
 
+function reset(room){
+  lobbys[room].locked = false;
+  lobbys[room].rounds = config.game.defaultRounds;
 
+  const players = Object.keys(lobbys[room].player);
+  players.forEach(playerId => {
+    lobbys[room].player[playerId].points = 0;
+    if(lobbys[room].player[playerId].answer){
+      delete lobbys[room].player[playerId].answer;
+    }
+  })
+  
+  if(lobbys[room].question){
+    delete lobbys[room].question;
+  }
+
+  
+  const lobbyMember = {};
+  Object.keys(lobbys[lobbyId].player).forEach((socketID) => {
+    lobbyMember[socketID] = lobbys[lobbyId].player[socketID].name;
+  });
+
+  const settings = {
+    rounds: lobbys[room].rounds,
+    playerNumber: lobbys[room].playerNumber,
+    lobbyMember: lobbyMember
+  }
+
+  gameSocket.to(room).emit("resetLobby", {settings: settings})
+}
 
 function calculatePointsRound(data) {
   //Points after every round
