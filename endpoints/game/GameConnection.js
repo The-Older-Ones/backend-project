@@ -71,7 +71,7 @@ async function createGame(data) {
     let list = await GameService.getCategoryList();
 
     position[this.id] = code;
-    
+
     lobbys[code] = {
       player: {
         [this.id]: {
@@ -81,7 +81,7 @@ async function createGame(data) {
           points: 0
         }
       },
-      list : list,
+      list: list,
       locked: false,
       host: this.id,
       playerNumber: config.game.defaultPlayerNumber,
@@ -211,7 +211,7 @@ function joinLobby(data) {
     lobbyMember: lobbyMember,
     playerNumber: lobbys[lobbyId].playerNumber,
     rounds: lobbys[lobbyId].rounds,
-    list : lobbys[lobbyId].list
+    list: lobbys[lobbyId].list
   }
 
   this.join(lobbyId);
@@ -524,7 +524,7 @@ function reset(room) {
     rounds: lobbys[room].rounds,
     playerNumber: lobbys[room].playerNumber,
     lobbyMember: lobbyMember,
-    extension : false
+    extension: false
   }
 
   gameSocket.to(room).emit("resetLobby", { settings: settings })
@@ -534,29 +534,29 @@ function evaluation(room) {
 
   const lobbyRoom = lobbys[room];
 
-  const result = Object.entries(lobbyRoom.player).map(([socketId,properties]) =>{
+  const result = Object.entries(lobbyRoom.player).map(([socketId, properties]) => {
     let query = false;
-    if(properties.answer == lobbyRoom.question.correct_answer){
+    if (properties.answer == lobbyRoom.question.correct_answer) {
       properties.points += parseInt(lobbyRoom.question.difficulty);
       console.log(properties.points)
       query = true;
     }
-    return({
-      [socketId] : {
-        points : properties.points,
-        answer : query
+    return ({
+      [socketId]: {
+        points: properties.points,
+        answer: query
       }
     })
-  }).sort((a,b) =>{
+  }).sort((a, b) => {
     const pointsA = Object.values(a)[0].points;
     const pointsB = Object.values(b)[0].points;
     return pointsB - pointsA;
-});
+  });
 
   lobbyRoom.rounds--;
 
   if (lobbyRoom.rounds == 0 && !lobbyRoom.extension) {
-    gameSocket.to(room).emit("gameFinished",{leaderboard : result});
+    gameSocket.to(room).emit("gameFinished", { leaderboard: result });
     return;
   };
 
@@ -570,15 +570,20 @@ function evaluation(room) {
   };
 
   const status = {
-    rightAnswer : lobbyRoom.question.correct_answer,
-    roundsLeft : lobbyRoom.rounds,
-    leaderboard : result
+    rightAnswer: lobbyRoom.question.correct_answer,
+    roundsLeft: lobbyRoom.rounds,
+    leaderboard: result
   }
+
+  delete lobbyRoom.question;
+  Object.keys(lobbyRoom.player).forEach(player => {
+    delete player.answer;
+  });
 
   gameSocket.to(room).emit("roundFinished", status);
 }
 
-function newGame(data){
+function newGame(data) {
   const room = position[this.id];
 
   if (!room || lobbys[room].host != this.id) {
@@ -622,19 +627,6 @@ module.exports = connection;
             "socketID" : "LobbyCode"
 }
 
-- evaluation -> sendet an alle in der Lobby die auswertung von einer Frage (Hilfsmethode also nicht mit FE socket ansprechbar)
-
-Abfrage über verbleibende Runden on T oder G
-------------------------------------------------------
- Teilevaluation - nach jeder Frage/Runde 
-{
-  socketId : {Points,answer true?}
-  socketId...
-},
-rightAnswer : ...,
-roundsLeft : ...,
-------------------------------------------------------
-Gesamtevaluation - Gesamte Auswertung
 
 [
   { '100': { points: 99999, answer: false } },
