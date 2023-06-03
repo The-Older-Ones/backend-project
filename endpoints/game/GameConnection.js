@@ -90,7 +90,7 @@ async function createGame(data) {
       playerNumber: lobbys[code].playerNumber,
       rounds: lobbys[code].rounds
     }
-    this.emit("gameCreated", { gameId: code, socketId: this.id, settings: settings });
+    this.emit("gameCreated", { gameId: code, socketId: this.id, hostName: hostName, settings: settings });
     this.join(code);
   } catch (error) {
     this.emit("error", { message: error.message, type: "critical" })
@@ -130,7 +130,7 @@ function disconnect(data) {
 
   gameSocket.to(room).emit("playerLeft", { playerId: socket.id });
 
-  if(check(room)){
+  if (check(room)) {
     //evaluation
   }
 }
@@ -442,33 +442,33 @@ function setAnswer(data) {
 
   lobbys[room].player[this.id].answer = data.answer.toString();
 
-  if(check(room)){
-  // evaluation
+  if (check(room)) {
+    // evaluation
   } else {
-  gameSocket.to(room).emit("playerAnswered", { playerId: this.id })
+    gameSocket.to(room).emit("playerAnswered", { playerId: this.id })
   }
 
 }
 
-function check(room){
+function check(room) {
   const players = Object.keys(lobbys[room].player);
   let checked = true;
   players.forEach(playerId => {
-    if(!lobbys[room].player[playerId].answer){
+    if (!lobbys[room].player[playerId].answer) {
       checked = false;
       return;
-    } 
+    }
   })
   return checked;
 }
 
 
 
-function calculatePointsRound(data){
+function calculatePointsRound(data) {
   //Points after every round
 }
 
-function calculatePointsAndResult(data){
+function calculatePointsAndResult(data) {
   //Points after all rounds and result
 }
 
