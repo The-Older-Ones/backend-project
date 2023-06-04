@@ -443,9 +443,14 @@ async function giveQuestion(data) {
 
     lobbys[room].question = question;
 
-    delete question.correct_answer;
+    const userQuestion = {
+      category : question.category,
+      difficulty: question.difficulty,
+      question: question.question,
+      allAnswers: question.allAnswers,
+    };
 
-    gameSocket.to(room).emit("givenQuestion", question);
+    gameSocket.to(room).emit("givenQuestion", userQuestion);
 
   } catch (error) {
     this.emit("error", { message: error.message, type: "critical" });
