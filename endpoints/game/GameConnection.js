@@ -68,7 +68,7 @@ async function createGame(data) {
     disconnect({ id: this.id });
   }
   try {
-    let list = await GameService.getCategoryList();
+    const list = await GameService.getCategoryList();
 
     position[this.id] = code;
 
@@ -127,7 +127,7 @@ function disconnect(data) {
   }
 
   if (checkEmptiness === 1 && lobbys[room].locked) {
-    reset(room)
+    reset(room);
   }
 
   if (socket.id == lobbys[room].host) {
@@ -232,7 +232,7 @@ function updateHost(data) {
   }
 
   if (currentHost == newHost) {
-    socket.emit("error", { message: "Already host", type: "critical" });
+    socket.emit("error", { message: "Already host", type: "warning" });
     return;
   }
 
@@ -261,14 +261,14 @@ function setRounds(data) {
   }
 
   if (!data.rounds) {
-    this.emit("error", { message: "data.rounds is not set. Number of rounds are unchanged", type: "critical" });
+    this.emit("error", { message: `data.rounds is not set. Number of rounds are unchanged. Rounds : ${lobbys[room].rounds}`, type: "critical" });
     return;
   }
 
-  const rounds = parseInt(data.rounds);
+  let rounds = parseInt(data.rounds);
 
   if (!rounds) {
-    this.emit("error", { message: "data.rounds is NaN. Number of rounds are unchanged", type: "critical" });
+    this.emit("error", { message: `data.rounds is NaN. Number of rounds are unchanged. Rounds : ${lobbys[room].rounds}`, type: "critical" });
     return;
   }
 
@@ -286,18 +286,18 @@ function setRounds(data) {
   const maxRounds = config.game.maxRounds;
 
   if (rounds < minRounds) {
-    this.emit("error", { message: `Selected number of rounds too low. Minimum Rounds : ${minRounds}`, type: "critical" });
-    return;
+    this.emit("error", { message: `Selected number of rounds too low. Set to minimum Rounds : ${minRounds}`, type: "warning" });
+    rounds = minRounds;
   }
 
   if (rounds > maxRounds) {
+    this.emit("error", { message: `Selected number of rounds too high. Set to maximum Rounds : ${maxRounds}`, type: "warning" });
     rounds = maxRounds;
   }
 
   lobbys[room].rounds = rounds;
 
   gameSocket.to(room).emit("updatedRounds", { rounds: rounds })
-
 }
 
 function setPlayerNumber(data) {
@@ -309,14 +309,14 @@ function setPlayerNumber(data) {
   }
 
   if (!data.playerNumber) {
-    this.emit("error", { message: "data.playerNumber is not set. Number of players are unchanged", type: "critical" });
+    this.emit("error", { message: `data.playerNumber is not set. Number of players are unchanged. Player : ${lobbys[room].playerNumber}`, type: "critical" });
     return;
   }
 
-  const playerNumber = parseInt(data.playerNumber);
+  let playerNumber = parseInt(data.playerNumber);
 
   if (!playerNumber) {
-    this.emit("error", { message: "data.playerNumber is NaN. Number of players are unchanged", type: "critical" });
+    this.emit("error", { message: `data.playerNumber is NaN. Number of players are unchanged. Player : ${lobbys[room].playerNumber}`, type: "critical" });
     return;
   }
 
@@ -339,11 +339,12 @@ function setPlayerNumber(data) {
   const maxPlayer = config.game.maxPlayerNumber;
 
   if (playerNumber < minPlayer) {
-    this.emit("error", { message: `Selected number of player too low. Minimum Player : ${minPlayer}`, type: "critical" });
-    return;
+    this.emit("error", { message: `Selected number of player too low. Set to minimum Player : ${minPlayer}`, type: "warning" });
+    playerNumber = minPlayer;
   }
 
   if (playerNumber > maxPlayer) {
+    this.emit("error", { message: `Selected number of player too hight. Set to maximum Player : ${maxPlayer}`, type: "warning" });
     playerNumber = maxPlayer;
   }
 
@@ -392,7 +393,7 @@ async function startGame(data) {
     const minPlayerNumber = config.game.minPlayerNumber;
 
     if (playersInLobby < minPlayerNumber) {
-      this.emit('error', { message: `Less than the minimum allowed. Minimum allowed is ${playerNumber}`, type: "critical" })
+      this.emit('error', { message: `Less than the minimum allowed Player. Minimum allowed Player are ${playerNumber}`, type: "critical" })
       return;
     }
 
@@ -418,6 +419,7 @@ async function giveQuestion(data) {
   try {
     // TODO Feature Training -> auch möglich wenn valider Token mitgeliefert wird | rounds = 0 behandlung
     const room = position[this.id];
+
     if (!room) {
       this.emit('error', { message: 'Lobby is not available', type: "critical" })
       return;
@@ -455,6 +457,7 @@ async function giveQuestion(data) {
 
 function setAnswer(data) {
   const room = position[this.id];
+
   if (!room) {
     this.emit('error', { message: 'Lobby is not available', type: "critical" })
     return;
@@ -466,7 +469,7 @@ function setAnswer(data) {
   }
 
   if (!data.answer) {
-    this.emit('error', { message: 'No answer received', type: "critical" })
+    this.emit('error', { message: 'data.answer is not set', type: "critical" })
     return;
   }
 
@@ -514,7 +517,6 @@ function reset(room) {
     delete lobbys[room].question;
   }
 
-
   const lobbyMember = {};
   Object.keys(lobbys[lobbyId].player).forEach((socketID) => {
     lobbyMember[socketID] = lobbys[lobbyId].player[socketID].name;
@@ -538,7 +540,6 @@ function evaluation(room) {
     let query = false;
     if (properties.answer == lobbyRoom.question.correct_answer) {
       properties.points += parseInt(lobbyRoom.question.difficulty);
-      console.log(properties.points)
       query = true;
     }
     return ({
@@ -565,8 +566,8 @@ function evaluation(room) {
 
   if (lobbyRoom.rounds == 0 && lobbyRoom.extension && first == second) {
     lobbyRoom.rounds = config.game.maxExtension;
-    delete lobbyRoom.extension;
-    gameSocket.to(room).emit("extendedGame");
+    lobbyRoom.extension = false;
+    gameSocket.to(room).emit("gameExtended");
   };
 
   const status = {
@@ -593,6 +594,8 @@ function newGame(data) {
 
   reset(room);
 }
+
+// function lobbySynchro (data) -> FE kann sich hier drüber aktualisierungen schicken bezüglich lobby änderungen
 
 module.exports = connection;
 
@@ -629,13 +632,10 @@ module.exports = connection;
 
 
 [
-  { '100': { points: 99999, answer: false } },
-  { '999': { points: 766, answer: true } },
-  { asdasd: { points: 50, answer: false } },
-  { '1223': { points: 0, answer: false } }
+  { socketId : { points: 99999, answer: false } },
+  { socketId': { points: 766, answer: true } },
+  { socketId : { points: 50, answer: false } },
+  { socketId : { points: 0, answer: false } }
 ]
-
-
-
 
 */
