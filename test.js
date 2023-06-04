@@ -8,7 +8,7 @@
 
 
 // // TODO - to test socket.io 
-const gameServices = require ("./endpoints/game/GameServices")
+const gameServices = require("./endpoints/game/GameServices")
 const database = require('./database/db');
 
 database((err) => {
@@ -22,54 +22,53 @@ database((err) => {
 async function testGetRandomQuestion() {
 
     const test = {
-        question : {
-            correct_answer : "Maul Affe",
-            difficulty : "666"
+        question: {
+            correct_answer: "Maul Affe",
+            difficulty: "666"
         },
-        player : {
-            1223 :{
-                points : 0,
-                answer : "tutt"
+        player: {
+            1223: {
+                points: 0,
+                answer: "tutt"
             },
-            999 :{
-                points : 100,
-                answer : "Maul Affe"
+            999: {
+                points: 100,
+                answer: "Maul Affe"
             },
-            100 : {
-                points : 99999,
-                answer : "asd"
+            100: {
+                points: 99999,
+                answer: "asd"
             },
-            "asdasd" : {
-                points : 50,
-                answer : "asd"
+            "asdasd": {
+                points: 50,
+                answer: "asd"
             }
         }
     }
 
 
 
-    const rückgabe = Object.entries(test.player).map(([socketId,properties]) =>{
-        let result = false;
-        if(properties.answer == test.question.correct_answer){
+    const rückgabe = Object.entries(test.player).map(([socketId, properties]) => {
+        let query = false;
+        if (properties.answer == test.question.correct_answer) {
           properties.points += parseInt(test.question.difficulty);
-          console.log(properties.points)
-          result = true;
+          query = true;
         }
-        return({
-          [socketId] : {
-            points : properties.points,
-            answer : result
+        return (
+          {
+            socketId: socketId,
+            points: properties.points,
+            answer: query
           }
-        })
-      }).sort((a,b) =>{
+        )
+      }).sort((a, b) => {
         const pointsA = Object.values(a)[0].points;
         const pointsB = Object.values(b)[0].points;
-      
         return pointsB - pointsA;
-    });;
+      });
 
-      console.log(rückgabe)
-  }
+    console.log(rückgabe)
+}
 
-  testGetRandomQuestion()
+testGetRandomQuestion()
 

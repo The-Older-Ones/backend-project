@@ -191,12 +191,12 @@ function joinLobby(data) {
     disconnect({ socket: this });
   }
 
-  const lobbyMember = {};
-  Object.keys(lobbys[lobbyId].player).forEach((socketID) => {
-    lobbyMember[socketID] = lobbys[lobbyId].player[socketID].name;
+  const lobbyMember = [];
+  Object.keys(lobbys[lobbyId].player).forEach((socketId) => {
+    lobbyMember.push({ socketId: [socketId], playerName: lobbys[lobbyId].player[socketId].name });
   });
   //Zusatz FE
-  lobbyMember[this.id] = playerName;
+  lobbyMember.push({ socketId: this.id, playerName: playerName });
 
   position[this.id] = lobbyId;
 
@@ -393,7 +393,7 @@ async function startGame(data) {
     const minPlayerNumber = config.game.minPlayerNumber;
 
     if (playersInLobby < minPlayerNumber) {
-      this.emit('error', { message: `Less than the minimum allowed Player. Minimum allowed Player are ${playerNumber}`, type: "critical" })
+      this.emit('error', { message: `Less than the minimum allowed Player. Minimum allowed Player are ${lobbys[room].playerNumber}`, type: "critical" })
       return;
     }
 
@@ -517,9 +517,9 @@ function reset(room) {
     delete lobbys[room].question;
   }
 
-  const lobbyMember = {};
-  Object.keys(lobbys[lobbyId].player).forEach((socketID) => {
-    lobbyMember[socketID] = lobbys[lobbyId].player[socketID].name;
+  const lobbyMember = [];
+  Object.keys(lobbys[lobbyId].player).forEach((socketId) => {
+    lobbyMember.push({ socketId: [socketId], playerName: lobbys[room].player[socketId].name });
   });
 
   const settings = {
@@ -542,12 +542,13 @@ function evaluation(room) {
       properties.points += parseInt(lobbyRoom.question.difficulty);
       query = true;
     }
-    return ({
-      [socketId]: {
+    return (
+      {
+        socketId: socketId,
         points: properties.points,
         answer: query
       }
-    })
+    )
   }).sort((a, b) => {
     const pointsA = Object.values(a)[0].points;
     const pointsB = Object.values(b)[0].points;
@@ -632,10 +633,10 @@ module.exports = connection;
 
 
 [
-  { socketId : { points: 99999, answer: false } },
-  { socketId': { points: 766, answer: true } },
-  { socketId : { points: 50, answer: false } },
-  { socketId : { points: 0, answer: false } }
+  { socketId: '100', points: 99999, answer: false },
+  { socketId: '999', points: 766, answer: true },
+  { socketId: '1223', points: 0, answer: false },
+  { socketId: 'asdasd', points: 50, answer: false }
 ]
 
 */
