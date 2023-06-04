@@ -9,7 +9,7 @@ const position = {};
 const connection = (io) => {
 
   io.on("connect", playerSocket => {
-    gameSocket = playerSocket;
+    gameSocket = io;
 
     //------- socket.on all handler -------//
 
