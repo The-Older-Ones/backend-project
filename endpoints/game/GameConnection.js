@@ -411,7 +411,7 @@ async function startGame(data) {
     gameSocket.to(room).emit("startedGame");
 
   } catch (error) {
-    gameSocket.to(room).emit("error", { message: error.message, type: "critical" });
+    this.emit("error", { message: error.message, type: "critical" });
   }
 }
 
@@ -518,7 +518,7 @@ function reset(room) {
   }
 
   const lobbyMember = [];
-  Object.keys(lobbys[lobbyId].player).forEach((socketId) => {
+  Object.keys(lobbys[room].player).forEach((socketId) => {
     lobbyMember.push({ socketId: [socketId], playerName: lobbys[room].player[socketId].name });
   });
 
