@@ -408,7 +408,7 @@ async function startGame(data) {
 
     lobbys[room].locked = true;
 
-    gameSocket.to(room).emit("startedGame");
+    gameSocket.to(room).emit("startedGame",{list : list});
 
   } catch (error) {
     this.emit("error", { message: error.message, type: "critical" });
