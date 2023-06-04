@@ -443,12 +443,9 @@ async function giveQuestion(data) {
 
     lobbys[room].question = question;
 
-    const userQuestion = {
-      question: question.question,
-      answers: question.allAnswers
-    }
+    delete question.correct_answer;
 
-    gameSocket.to(room).emit("givenQuestion", userQuestion);
+    gameSocket.to(room).emit("givenQuestion", question);
 
   } catch (error) {
     this.emit("error", { message: error.message, type: "critical" });
@@ -465,6 +462,11 @@ function setAnswer(data) {
 
   if (!lobbys[room].locked) {
     this.emit('error', { message: 'Lobby is not locked', type: "critical" })
+    return;
+  }
+
+  if(!lobbys[room].question){
+    this.emit('error', { message: 'No question choose', type: "critical" })
     return;
   }
 

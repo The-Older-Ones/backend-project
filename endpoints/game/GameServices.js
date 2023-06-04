@@ -27,10 +27,11 @@ async function getRandomQuestion(categoryQuestion, difficultyQuestion) {
     allAnswers.splice(correctAnswerIndex, 0, randomQuestion.correct_answer);
 
     const questionObject = {
-      "allAnswers": allAnswers,
-      "difficulty": randomQuestion.difficulty,
-      "question": randomQuestion.question,
-      "correct_answer": randomQuestion.correct_answer
+      category : randomQuestion.category,
+      difficulty: randomQuestion.difficulty,
+      question: randomQuestion.question,
+      allAnswers: allAnswers,
+      correct_answer: randomQuestion.correct_answer
     };
 
     return questionObject;
