@@ -216,7 +216,7 @@ function joinLobby(data) {
 
   this.join(lobbyId);
   this.emit('joinedLobby', { gameId: lobbyId, socketId: this.id, settings: settings });
-  gameSocket.to(lobbyId).emit("playerJoined", { playerId: this.id, playerName: playerName });
+  gameSocket.except(this.id).to(lobbyId).emit("playerJoined", { playerId: this.id, playerName: playerName });
 }
 
 function updateHost(data) {
