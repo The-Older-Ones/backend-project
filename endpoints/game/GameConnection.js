@@ -527,7 +527,7 @@ function reset(room) {
 
   const lobbyMember = [];
   Object.keys(lobbys[room].player).forEach((socketId) => {
-    lobbyMember.push({ socketId: [socketId], playerName: lobbys[room].player[socketId].name });
+    lobbyMember.push({ socketId: socketId, playerName: lobbys[room].player[socketId].name });
   });
 
   const settings = {
