@@ -585,8 +585,8 @@ function evaluation(room) {
   }
 
   delete lobbyRoom.question;
-  Object.keys(lobbyRoom.player).forEach(player => {
-    delete lobbyRoom.player.answer;
+  Object.keys(lobbyRoom.player).forEach(socketId => {
+    delete lobbyRoom.player[socketId].answer;
   });
 
   gameSocket.to(room).emit("roundFinished", status);
