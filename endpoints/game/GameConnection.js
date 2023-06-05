@@ -193,7 +193,7 @@ function joinLobby(data) {
 
   const lobbyMember = [];
   Object.keys(lobbys[lobbyId].player).forEach((socketId) => {
-    lobbyMember.push({ socketId: [socketId], playerName: lobbys[lobbyId].player[socketId].name });
+    lobbyMember.push({ socketId: socketId, playerName: lobbys[lobbyId].player[socketId].name });
   });
   //Zusatz FE
   lobbyMember.push({ socketId: this.id, playerName: playerName });
