@@ -27,6 +27,7 @@ const connection = (io) => {
     playerSocket.on("setAnswer", setAnswer);
     playerSocket.on("setExtension", setExtension);
     playerSocket.on("newGame", newGame);
+    playerSocket.on("lobbySynchro",lobbySynchro);
 
     //------- socket.on all handler -------//
     playerSocket.emit("connected", { message: "Connected successfully" });
@@ -216,7 +217,7 @@ function joinLobby(data) {
 
   this.join(lobbyId);
   this.emit('joinedLobby', { gameId: lobbyId, socketId: this.id, settings: settings });
-  gameSocket.except(this.id).to(lobbyId).emit("playerJoined", { playerId: this.id, playerName: playerName });
+  this.to(lobbyId).emit("playerJoined", { playerId: this.id, playerName: playerName });
 }
 
 function updateHost(data) {
@@ -603,7 +604,10 @@ function newGame(data) {
   reset(room);
 }
 
-// function lobbySynchro (data) -> FE kann sich hier drüber aktualisierungen schicken bezüglich lobby änderungen
+function lobbySynchro (data){
+  const room = position[this.id];
+  this.to(room).emit("synchronizedLobby",data)
+}
 
 module.exports = connection;
 
