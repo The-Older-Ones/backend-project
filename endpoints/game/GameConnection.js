@@ -139,7 +139,7 @@ function disconnect(data) {
 
   gameSocket.to(room).emit("playerLeft", { playerId: socket.id });
 
-  if (check(room) || lobbys[room].question) {
+  if (check(room) && lobbys[room].question) {
     evaluation(room);
   }
 }
