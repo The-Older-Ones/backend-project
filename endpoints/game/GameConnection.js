@@ -1,6 +1,7 @@
 const GameService = require("./GameServices")
 const jwt = require('jsonwebtoken');
 const config = require("config");
+const logger = require("../../logger");
 
 let gameSocket;
 const lobbys = {};
@@ -27,24 +28,28 @@ const connection = (io) => {
     playerSocket.on("setAnswer", setAnswer);
     playerSocket.on("setExtension", setExtension);
     playerSocket.on("newGame", newGame);
-    playerSocket.on("lobbySynchro",lobbySynchro);
+    playerSocket.on("lobbySynchro", lobbySynchro);
 
     //------- socket.on all handler -------//
+    logger.info(`User joined : ${playerSocket.id}`)
     playerSocket.emit("connected", { message: "Connected successfully" });
   });
 }
 
 async function createGame(data) {
+  logger.debug("methode : createGame called")
   const hostName = data.playerName;
   const token = data.token;
 
   if (!hostName) {
+    logger.error("data.playerName is not set");
     this.emit("error", { message: "data.playerName is not set", type: "critical" })
     return;
   }
 
   let verify = authenticated(token);
   if (verify.error) {
+    logger.warn(verify.error + " token : " + token);
     this.emit("error", { message: verify.error, type: "warning" })
     verify = false;
   }
@@ -98,32 +103,36 @@ async function createGame(data) {
     //Zusatz FE hostname
     this.emit("gameCreated", { gameId: code, socketId: this.id, hostName: hostName, settings: settings });
     this.join(code);
+    logger.info("Game created successfully");
   } catch (error) {
+    logger.error(error.message);
     this.emit("error", { message: error.message, type: "critical" })
   }
+  logger.debug("exit methode : createGame")
 }
 
 function disconnect(data) {
+  logger.debug("methode : disconnect called")
 
   const socket = data.socket ? data.socket : this;
 
   const room = position[socket.id];
 
   if (!room) {
-    console.log("Player left Game")
+    logger.info("Player left Game without enter a Lobby");
     return;
   }
 
   delete lobbys[room].player[socket.id];
 
-  console.log("Player left Lobby " + room)
+  logger.info("Player left Lobby " + room);
 
   const checkEmptiness = Object.keys(lobbys[room].player).length;
 
   if (checkEmptiness === 0) {
     delete lobbys[room];
     delete position[socket.id];
-    console.log("Closed Lobby: " + room)
+    logger.info("Closed Lobby: " + room);
     return;
   }
 
@@ -142,6 +151,8 @@ function disconnect(data) {
   if (check(room) && lobbys[room].question) {
     evaluation(room);
   }
+  logger.debug("exit methode : disconnect")
+
 }
 
 function authenticated(token) {
@@ -161,29 +172,35 @@ function authenticated(token) {
 }
 
 function joinLobby(data) {
+  logger.debug("methode : joinLobby called")
   const lobbyId = data.gameId;
   const playerName = data.playerName;
   const token = data.token;
 
   if (typeof lobbys[lobbyId] === 'undefined' || lobbys[lobbyId].locked === true) {
+    logger.error("Lobby is not available + " + lobbyId);
     this.emit('error', { message: 'Lobby is not available', type: "critical" });
     return;
   }
 
   if (!playerName) {
+    logger.error("data.playerName is not set");
     this.emit("error", { message: "data.playerName is not set", type: "critical" })
     return;
   }
 
   const playersInLobby = Object.keys(lobbys[lobbyId].player).length;
+  const lobbyMaxPlayer = lobbys[lobbyId].player.playerNumber;
 
-  if (playersInLobby == lobbys[lobbyId].player.playerNumber) {
+  if (playersInLobby == lobbyMaxPlayer) {
+    logger.error(`Lobby is full ${playersInLobby} : ${lobbyMaxPlayer}`);
     this.emit("error", { message: "Lobby is full", type: "critical" })
     return;
   }
 
   let verify = authenticated(token);
   if (verify.error) {
+    logger.error(verify.error + " token : " + token);
     this.emit("error", { message: verify.error, type: "warning" })
     verify = false;
   }
@@ -218,9 +235,12 @@ function joinLobby(data) {
   this.join(lobbyId);
   this.emit('joinedLobby', { gameId: lobbyId, socketId: this.id, settings: settings });
   this.to(lobbyId).emit("playerJoined", { playerId: this.id, playerName: playerName });
+  logger.info(`Player joined Lobby successfully : ${lobbyId}`)
+  logger.debug("exit methode : joinLobby")
 }
 
 function updateHost(data) {
+  logger.debug("methode : updateHost called")
   const socket = data.socket ? data.socket : this;
   const room = position[socket.id];
   const newHost = data.newHost ? data.newHost : Object.keys(lobbys[room].player)[0];
@@ -228,11 +248,13 @@ function updateHost(data) {
   const currentHost = lobbys[room].host
 
   if (currentHost != socket.id) {
+    logger.error(`No permission to change the host. Requester : ${this.id} , Host : ${currentHost}`)
     socket.emit("error", { message: "No permission to change the host", type: "critical" })
     return;
   }
 
   if (currentHost == newHost) {
+    logger.warn(`Already host.Requester : ${this.id} , Host : ${currentHost}`)
     socket.emit("error", { message: "Already host", type: "warning" });
     return;
   }
@@ -240,28 +262,32 @@ function updateHost(data) {
   const playerInLobby = Object.keys(lobbys[room].player).filter((id) => id == newHost).length == 1;
 
   if (!playerInLobby) {
+    logger.error(`Selected player is not in the lobby. Requested Host : ${newHost} , Lobbymember : ${playerInLobby}`);
     socket.emit("error", { message: "Selected player is not in the lobby", type: "critical" });
     return;
   }
 
   lobbys[room].host = newHost;
-
-  console.log(lobbys[room].host);
+  logger.info(`Set new Host in Lobby :${room} successfully`);
 
   // Feature : User eigene Fragen.  Nochmalige DB anfrage für list + ablegen in lobbys objekt,
 
   gameSocket.to(room).emit("updatedHost", { newHost: newHost });
+  logger.debug("exit methode : updateHost")
 }
 
 function setRounds(data) {
+  logger.debug("methode : setRounds called")
   const room = position[this.id];
 
   if (!room || lobbys[room].host != this.id) {
+    logger.error(`Not Authorized to change number of rounds. Player`)
     this.emit("error", { message: "Not Authorized to change number of rounds", type: "critical" });
     return;
   }
 
   if (!data.rounds) {
+    logger.error(`data.rounds is not set. Value : ${data.rounds}`);
     this.emit("error", { message: `data.rounds is not set. Number of rounds are unchanged. Rounds : ${lobbys[room].rounds}`, type: "critical" });
     return;
   }
@@ -269,16 +295,19 @@ function setRounds(data) {
   let rounds = parseInt(data.rounds);
 
   if (!rounds) {
+    logger.error(`data.rounds is NaN. Value : ${data.rounds}`);
     this.emit("error", { message: `data.rounds is NaN. Number of rounds are unchanged. Rounds : ${lobbys[room].rounds}`, type: "critical" });
     return;
   }
 
   if (lobbys[room].locked) {
+    logger.error(`Game is already locked. No changes allowed. Value of locked : ${lobbys[room].locked}`)
     this.emit("error", { message: "Game is already locked. No changes allowed", type: "critical" })
     return;
   }
 
   if (rounds == lobbys[room].rounds) {
+    logger.error(`Number of rounds already set. New Value : ${rounds} , Actual Value : ${rounds}`)
     this.emit("error", { message: `Number of rounds already set to ${rounds}`, type: "warning" });
     return;
   }
@@ -287,29 +316,36 @@ function setRounds(data) {
   const maxRounds = config.game.maxRounds;
 
   if (rounds < minRounds) {
+    logger.warn(`Selected number of rounds (${rounds}) too low. Set to minimum Rounds : ${minRounds}`)
     this.emit("error", { message: `Selected number of rounds too low. Set to minimum Rounds : ${minRounds}`, type: "warning" });
     rounds = minRounds;
   }
 
   if (rounds > maxRounds) {
+    logger.warn(`Selected number of rounds (${rounds}) too hight. Set to maximum Rounds : ${minRounds}`)
     this.emit("error", { message: `Selected number of rounds too high. Set to maximum Rounds : ${maxRounds}`, type: "warning" });
     rounds = maxRounds;
   }
 
   lobbys[room].rounds = rounds;
+  logger.info(`Set new amount of rounds successfully to ${rounds}`)
 
   gameSocket.to(room).emit("updatedRounds", { rounds: rounds })
+  logger.debug("exit methode : setRounds")
 }
 
 function setPlayerNumber(data) {
+  logger.debug("methode : setPlayerNumber called")
   const room = position[this.id];
 
   if (!room || lobbys[room].host != this.id) {
+    logger.error(`Not Authorized to change number of rounds.`)
     this.emit("error", { message: "Not Authorized to change number of rounds", type: "critical" });
     return;
   }
 
   if (!data.playerNumber) {
+    logger.error(`data.playerNumber is not set. Value : ${data.playerNumber}`)
     this.emit("error", { message: `data.playerNumber is not set. Number of players are unchanged. Player : ${lobbys[room].playerNumber}`, type: "critical" });
     return;
   }
@@ -317,21 +353,25 @@ function setPlayerNumber(data) {
   let playerNumber = parseInt(data.playerNumber);
 
   if (!playerNumber) {
+    logger.error(`data.playerNumber is NaN. Value : ${playerNumber}`);
     this.emit("error", { message: `data.playerNumber is NaN. Number of players are unchanged. Player : ${lobbys[room].playerNumber}`, type: "critical" });
     return;
   }
 
   if (lobbys[room].locked) {
+    logger.error(`Game is already locked. Locked : ${lobbys[room].locked}`);
     this.emit("error", { message: "Game is already locked. No changes allowed", type: "critical" })
     return;
   }
   const playersInLobby = Object.keys(lobbys[room].player).length;
   if (playerNumber < playersInLobby) {
+    logger.error(`Player number can't be changed to a number below to the players in the lobby. Value : ${playerNumber} , Current : ${playersInLobby}`);
     this.emit("error", { message: "Player number can't be changed to a number below to the players in the lobby", type: "critical" })
     return;
   }
 
   if (playerNumber == lobbys[room].playerNumber) {
+    logger.warn(`Number of player already set to current. Value : ${playerNumber} , Current : ${lobbys[room].playerNumber}`);
     this.emit("error", { message: `Number of player already set to ${playerNumber}`, type: "warning" });
     return;
   }
@@ -340,52 +380,64 @@ function setPlayerNumber(data) {
   const maxPlayer = config.game.maxPlayerNumber;
 
   if (playerNumber < minPlayer) {
+    logger.warn(`Selected number of player (${playerNumber}) too low. Set to minimum Rounds : ${minPlayer}`)
     this.emit("error", { message: `Selected number of player too low. Set to minimum Player : ${minPlayer}`, type: "warning" });
     playerNumber = minPlayer;
   }
 
   if (playerNumber > maxPlayer) {
+    logger.warn(`Selected number of player (${playerNumber}) too low. Set to minimum Rounds : ${maxPlayer}`)
     this.emit("error", { message: `Selected number of player too hight. Set to maximum Player : ${maxPlayer}`, type: "warning" });
     playerNumber = maxPlayer;
   }
 
   lobbys[room].playerNumber = playerNumber;
-
+  logger.info(`Set new amount of player successfully to ${playerNumber}`)
   gameSocket.to(room).emit("updatedPlayerNumber", { playerNumber: playerNumber })
+  logger.debug("exit methode : setPlayerNumber")
 }
 
 function setExtension(data) {
+  logger.debug("methode : setExtension called")
   const room = position[this.id];
 
   if (!room || lobbys[room].host != this.id) {
+    logger.error("Not Authorized to activate extension")
     this.emit("error", { message: "Not Authorized to activate extension", type: "critical" });
     return;
   }
 
   if (lobbys[room].locked) {
+    logger.error(`Game already started. Locked : ${lobbys[room].locked}`);
     this.emit('error', { message: 'Game already started', type: "critical" })
     return;
   }
 
   lobbys[room].extension = data.extension ? true : false;
+  logger.info(`Set extension successfully to ${lobbys[room].extension}`)
 
   gameSocket.to(room).emit("updatedExtension", { extension: lobbys[room].extension });
+  logger.debug("exit methode : setExtension")
 }
 
 async function startGame(data) {
+  logger.debug("methode : startGame called")
   try {
     const room = position[this.id];
     if (!room) {
+      logger.error(`Lobby is not available`)
       this.emit('error', { message: 'Lobby is not available', type: "critical" })
       return;
     }
 
     if (lobbys[room].host != this.id) {
+      logger.error(`No permission to start the game. Requester : ${this.id} , Host : ${lobbys[room].host}`)
       this.emit('error', { message: 'No permission to start the game', type: "critical" })
       return;
     }
 
     if (lobbys[room].locked) {
+      logger.error('Game already started. Locked : lobbys[room].locked')
       this.emit('error', { message: 'Game already started', type: "critical" })
       return;
     }
@@ -394,13 +446,15 @@ async function startGame(data) {
     const minPlayerNumber = config.game.minPlayerNumber;
 
     if (playersInLobby < minPlayerNumber) {
+      logger.error(`Less than the minimum allowed Player. Current : ${playersInLobby} , Minimum : ${lobbys[room].playerNumber}`)
       this.emit('error', { message: `Less than the minimum allowed Player. Minimum allowed Player are ${lobbys[room].playerNumber}`, type: "critical" })
       return;
     }
 
     const list = data.list;
 
-    if (!list || !Array.isArray(list)) {
+    if (!list || !Array.isArray(list) || list.length == 0) {
+      logger.error(`data.list is either not stored, an array or is an empty array. Value : ${list}`)
       this.emit('error', { message: 'data.list is either not stored or it is not an array', type: "critical" })
       return;
     }
@@ -408,25 +462,31 @@ async function startGame(data) {
     await GameService.checkCategory(list);
 
     lobbys[room].locked = true;
+    logger.info(`Game ${room} successfully started`)
 
-    gameSocket.to(room).emit("startedGame",{list : list});
+    gameSocket.to(room).emit("startedGame", { list: list });
 
   } catch (error) {
+    logger.error(error.message);
     this.emit("error", { message: error.message, type: "critical" });
   }
+  logger.debug("exit methode : startGame")
 }
 
 async function giveQuestion(data) {
+  logger.debug("methode : giveQuestion called")
   try {
     // TODO Feature Training -> auch möglich wenn valider Token mitgeliefert wird | rounds = 0 behandlung
     const room = position[this.id];
 
     if (!room) {
+      logger.error(`Lobby is not available`)
       this.emit('error', { message: 'Lobby is not available', type: "critical" })
       return;
     }
 
     if (!lobbys[room].locked) {
+      logger.error('Game already started. Locked : lobbys[room].locked')
       this.emit('error', { message: 'Lobby is not locked', type: "critical" })
       return;
     }
@@ -436,6 +496,7 @@ async function giveQuestion(data) {
 
     if (!category || !difficulty) {
       const problem = !category ? "category" : "difficulty"
+      logger.error(`${problem} is not given. Category value : ${category} , Difficulty value : ${difficulty}`)
       this.emit('error', { message: `${problem} is not given`, type: "critical" });
       return;
     }
@@ -443,58 +504,68 @@ async function giveQuestion(data) {
     const question = await GameService.getRandomQuestion(category, difficulty);
 
     lobbys[room].question = question;
-
+    
     const userQuestion = {
-      category : question.category,
+      category: question.category,
       difficulty: question.difficulty,
       question: question.question,
       allAnswers: question.allAnswers,
     };
-
+    
+    logger.info(`Generate question successfully`)
     gameSocket.to(room).emit("givenQuestion", userQuestion);
 
   } catch (error) {
+    logger.error(error.message)
     this.emit("error", { message: error.message, type: "critical" });
   }
+  logger.debug("exit methode : giveQuestion")
 }
 
 function setAnswer(data) {
+  logger.debug("methode : setAnswer called")
   const room = position[this.id];
 
   if (!room) {
+    logger.error(`Lobby is not available`)
     this.emit('error', { message: 'Lobby is not available', type: "critical" })
     return;
   }
 
   if (!lobbys[room].locked) {
+    logger.error('Game already started. Locked : lobbys[room].locked')
     this.emit('error', { message: 'Lobby is not locked', type: "critical" })
     return;
   }
 
-  if(!lobbys[room].question){
+  if (!lobbys[room].question) {
+    logger.error(`No Question saved. Question : ${lobbys[room].question}`)
     this.emit('error', { message: 'No question choose', type: "critical" })
     return;
   }
 
   if (!data.answer) {
+    logger.error(`data.answer is not set. Value : ${data.answer}`)
     this.emit('error', { message: 'data.answer is not set', type: "critical" })
     return;
   }
 
   if (lobbys[room].player[this.id].answer) {
     const origAnswer = lobbys[room].player[this.id].answer
+    logger.error(`Already gave an answer. Current :${origAnswer} , Value : ${lobbys[room].player[this.id].answer}`)
     this.emit('error', { message: `Already gave an answer: ${origAnswer}`, type: "critical" })
     return;
   }
 
   lobbys[room].player[this.id].answer = data.answer.toString();
+  logger.info(`Answer successfully set to ${data.answer.toString()}`);
 
   if (check(room)) {
     evaluation(room);
   } else {
     gameSocket.to(room).emit("playerAnswered", { playerId: this.id })
   }
-
+  logger.debug("exit methode : setAnswer")
 }
 
 function check(room) {
@@ -510,6 +581,7 @@ function check(room) {
 }
 
 function reset(room) {
+  logger.debug("methode : reset called")
   lobbys[room].locked = false;
   lobbys[room].rounds = config.game.defaultRounds;
 
@@ -538,10 +610,11 @@ function reset(room) {
   }
 
   gameSocket.to(room).emit("resetLobby", { settings: settings })
+  logger.debug("exit methode : reset")
 }
 
 function evaluation(room) {
-
+  logger.debug("methode : evaluation called")
   const lobbyRoom = lobbys[room];
 
   const result = Object.entries(lobbyRoom.player).map(([socketId, properties]) => {
@@ -562,10 +635,12 @@ function evaluation(room) {
     const pointsB = Object.values(b)[0].points;
     return pointsB - pointsA;
   });
+  logger.info(`Leaderboard successfully created for ${room}`)
 
   lobbyRoom.rounds--;
 
   if (lobbyRoom.rounds == 0 && !lobbyRoom.extension) {
+    logger.info(`Game : ${room} successfully finished`)
     gameSocket.to(room).emit("gameFinished", { leaderboard: result });
     return;
   };
@@ -576,6 +651,7 @@ function evaluation(room) {
   if (lobbyRoom.rounds == 0 && lobbyRoom.extension && first == second) {
     lobbyRoom.rounds = config.game.maxExtension;
     lobbyRoom.extension = false;
+    logger.info(`Game : ${room} successfully extend.`)
     gameSocket.to(room).emit("gameExtended");
   };
 
@@ -590,23 +666,28 @@ function evaluation(room) {
     delete lobbyRoom.player[socketId].answer;
   });
 
+  logger.info(`Round successfully finished for ${room}`)
   gameSocket.to(room).emit("roundFinished", status);
+  logger.debug("exit methode : evaluation")
 }
 
 function newGame(data) {
+  logger.debug("methode : newGame called")
   const room = position[this.id];
 
   if (!room || lobbys[room].host != this.id) {
+    logger.error(`Not Authorized to initialize new game. Requester : ${this.id} , Host : ${currentHost}`)
     this.emit("error", { message: "Not Authorized to initialize new game", type: "critical" });
     return;
   }
 
   reset(room);
+  logger.debug("exit methode : newGame")
 }
 
-function lobbySynchro (data){
+function lobbySynchro(data) {
   const room = position[this.id];
-  this.to(room).emit("synchronizedLobby",data)
+  this.to(room).emit("synchronizedLobby", data)
 }
 
 module.exports = connection;

@@ -19,5 +19,8 @@
         "minPlayerNumber" : 2,
         "maxPlayerNumber" : 6,
         "maxExtension" : 1
-    }
+    },
+    "loggingEnabled" : true,
+    "loggingEnabledConsole" : false,
+    "loggingLevel" : "debug"
 }

@@ -2,6 +2,7 @@ const Question = require("./QuestionModel");
 const List = require("./CategoryListModel");
 const fs = require("fs").promises;
 const path = require("path");
+const logger = require("../../logger");
 
 const folderPath = __dirname + "/InitialQuestions";
 const catalog = [];
@@ -14,11 +15,12 @@ const main = async () => {
             await fillDB();
             const allCategory = await Question.distinct("category");
             await List.create({ list: allCategory });
-            console.log("Database successfully initialized with categorylist")
+            logger.info("Database successfully initialized with categorylist");
         } else {
-            console.log("No initialization of the questions necessary");
+            logger.info("No initialization of the questions necessary");
         }
     } catch (err) {
+        logger.error("Error initializing database:", err);
         throw err;
     }
 }
@@ -39,8 +41,9 @@ const fileLoader = async () => {
         });
 
         await Promise.all(fileReadPromises);
-        console.log("Files loaded successfully");
+        logger.info("Files loaded successfully");
     } catch (err) {
+        logger.error("Error loading files:", err);
         throw new Error("Error loading files" + err);
     }
 }
@@ -49,12 +52,12 @@ const fillDB = async () => {
     const savePromises = catalog.map((questionObject) => {
         try {
             Question.create(questionObject)
-        } catch {
-            console.log("Error saving question : " + questionObject.question)
+        } catch (err) {
+            logger.error("Error saving question:", questionObject.question, err);
         }
     });
     await Promise.all(savePromises);
-    console.log("Database successfully initialized with questions");
+    logger.info("Database successfully initialized with questions");
 }
 
 module.exports = main;
