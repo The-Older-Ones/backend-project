@@ -20,7 +20,7 @@
         "maxPlayerNumber" : 6,
         "maxExtension" : 1
     },
-    "loggingEnabled" : true,
+    "loggingEnabledFile" : false,
     "loggingEnabledConsole" : false,
     "loggingLevel" : "debug"
 }
