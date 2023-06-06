@@ -1,9 +1,13 @@
 const User = require("./UserModel");
+const logger = require("../../logger")
 
 async function createUser(newUser) {
+    logger.debug("methode : createUser called")
     // add !newUser.email if the time has come
     if (!newUser.userID || !newUser.password) {
-        throw new Error("Please fill all required fields", null) 
+        const errorMessage = "Please fill all required fields";
+        logger.error(errorMessage)
+        throw new Error(errorMessage, null);
     }
     try {
         const createNew = await User.create(newUser);
@@ -15,30 +19,40 @@ async function createUser(newUser) {
             isAdministrator: createNew.isAdministrator
             //to hide password from response
         };
+        logger.info("User created:", subset);
+        logger.debug("exit methode : createUser")
         return subset;
     } catch (error) {
         if (error.name === 'ValidationError') {
             // To show the errors from the validators or the error while creating User if its something else
             const message = Object.values(error.errors).map((err) => err.message);
+            logger.error("Validation error:", message);
             throw new Error(message);
         } else {
             let user = await User.findOne({ userID: newUser.userID });
             // the $or is used to either check for a duplicate email or a duplicate userID
             if (user) {
-                throw new Error("User with the same UserID or Email already exists");
+                const errorMessage = "User with the same UserID or Email already exists";
+                logger.error(errorMessage);
+                throw new Error(errorMessage);
             }
-            throw new Error("Error while creating User");
+            const errorMessage = "Error while creating User";
+            logger.error(errorMessage);
+            throw new Error(errorMessage);
         }
     }
 }
 
 async function authenticate(loginUser, callback) {
+    logger.debug("methode : authenticate called")
     let user = await User.findOne({userID: loginUser.username});
     if (user) {
         user.comparePassword(loginUser.password, (err, result) => {
             if (result) {
+                logger.info("Authentication successful:", user);
                 return callback(null, user);
             } else {
+                logger.error("Authentication failed");
                 return callback(true, null);
             }
         });

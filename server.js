@@ -9,6 +9,7 @@ const socketIO = require('socket.io');
 const app = express();
 const bodyparser = require('body-parser');
 const connection = require("./endpoints/game/GameConnection");
+const logger = require("./logger")
 
 // --- Wurde vorher benutzt und falls es später Probleme geben sollte diesen statt app.use(cors) nuutzen ---
 // app.use("*", cors());
@@ -31,9 +32,9 @@ app.use(function (req, res) {
 
 database((err) => {
     if (err) {
-        console.log("Error: Could not connect to database " + err.message);
+        logger.error("Error: Could not connect to database " + err.message);
     } else {
-        console.log("Successful: connection to the database established");
+        logger.info("Successful: connection to the database established");
         questionInit();
     }
 });
@@ -50,4 +51,12 @@ const io = socketIO(server, {
 
 connection(io.of('/api/game'));
 
-server.listen(80);
+const port = 80;
+server.listen(port, () =>{
+    logger.info(`Server started on port ${port}`);
+});
+
+process.on("uncaughtException", (error) => {
+    logger.error("Uncaught Exception:", error);
+    process.exit(1);
+  });
