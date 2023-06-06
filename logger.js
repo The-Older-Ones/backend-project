@@ -8,7 +8,7 @@ const logger = winston.createLogger({
       winston.format.timestamp({ format: "DD-MM-YYYY HH:mm:ss" }),
       winston.format.printf(info => {
         const { timestamp, level, message} = info;
-        return `${timestamp} [${level}] ${message}`;
+        return `${timestamp} [${level}] [${message}]`;
       })
     ),
     transports: []
@@ -23,9 +23,9 @@ if (config.loggingEnabled) {
       tailable: true
     })
   );
-  if(config.loggingEnabledConsole){
-    logger.add(new winston.transports.Console());
-  }
+}
+if(config.loggingEnabledConsole){
+  logger.add(new winston.transports.Console());
 }
 
   module.exports = logger;
