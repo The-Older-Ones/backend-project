@@ -57,6 +57,8 @@ server.listen(port, () =>{
 });
 
 process.on("uncaughtException", (error) => {
-    logger.error("Uncaught Exception:", error);
-    process.exit(1);
-  });
+    logger.error("Uncaught Exception: " +  error);
+    setTimeout(() => {
+      process.exit(1);
+    }, 1000);
+  })
