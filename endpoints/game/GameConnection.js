@@ -55,7 +55,7 @@ async function createGame(data) {
   }
 
   const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-  const codeCharacter = 9;
+  const codeCharacter = config.game.codeSize;
   let code = "";
   let checkedGameID = false;
 
