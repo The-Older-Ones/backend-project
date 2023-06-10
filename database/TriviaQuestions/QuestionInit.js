@@ -3,15 +3,17 @@ const List = require("./CategoryListModel");
 const fs = require("fs").promises;
 const path = require("path");
 const logger = require("../../logger");
+const config = require("config");
 
 const folderPath = __dirname + "/InitialQuestions";
-const catalog = [];
+let catalog = [];
 
 const main = async () => {
     try {
         const sample = await Question.findOne();
         if (!sample) {
             await fileLoader();
+            check();
             await fillDB();
             const allCategory = await Question.distinct("category");
             await List.create({ list: allCategory });
@@ -46,6 +48,37 @@ const fileLoader = async () => {
         logger.error("Error loading files:", err);
         throw new Error("Error loading files" + err);
     }
+}
+
+const check = () => {
+    const diff = config.game.difficultys;
+    const hashMap = {};
+
+    catalog.forEach(q => {
+        category = q.category;
+        if (!hashMap[category]) {
+            hashMap[category] = [];
+        }
+        hashMap[category].push(q);
+    });
+
+    const givenCategories = Object.keys(hashMap).map(cat => {
+        const checkingCategory = hashMap[cat].filter((obj, index, self) => {
+            return index === self.findIndex((o) => {
+                return o.difficulty == obj.difficulty;
+            });
+        });
+        if (diff.length != checkingCategory.length) {
+            logger.warn(`Category "${cat}" not initialized. Insufficient variety of questions.`);
+            return null;
+        };
+        return cat;
+    })
+    .filter(Boolean);
+
+    catalog = catalog.filter(q => {
+        return givenCategories.includes(q.category);
+    });
 }
 
 const fillDB = async () => {

@@ -7,7 +7,6 @@ if (!config.loggingEnabledFile && !config.loggingEnabledConsole) {
   logger = {
     error: () => { },
     warn: () => { },
-    warning: () => { },
     info: () => { },
     http: () => { },
     verbose: () => { },
