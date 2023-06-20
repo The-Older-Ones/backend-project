@@ -504,14 +504,14 @@ async function giveQuestion(data) {
     const question = await GameService.getRandomQuestion(category, difficulty);
 
     lobbys[room].question = question;
-
+    
     const userQuestion = {
       category: question.category,
       difficulty: question.difficulty,
       question: question.question,
       allAnswers: question.allAnswers,
     };
-
+    
     logger.info(`Generate question successfully`)
     gameSocket.to(room).emit("givenQuestion", userQuestion);
 
@@ -690,39 +690,53 @@ function lobbySynchro(data) {
   this.to(room).emit("synchronizedLobby", data)
 }
 
-/** Funktion um vorhanden sein der gegebenen daten / parametern zu prüfen.
-@param {object} data - Objekt mit verschiedenen Properties.
-@param {string} clientId - SocketID des Users der die Anfrage stellt
+/** Funktion um vorhanden sein der gegebenen daten / parametern zu prüfen. Sendet im Fehlerfall emit("error").
+@param {object} obj - Objekt mit verschiedenen Properties.
+@param {object} client - Socket-Object des Users der die Anfrage stellt
 @param {Array} options - Properties die data enthalten soll. Zusätzlich kann "host" angegeben werden falls der User der Host des Room´s sein soll.
-@returns {string|boolean} - String des nicht vorhandenen Datensatzes. Falls es keine Probleme gibt wird false zurückgegeben.
+@returns {boolean} - Ergebnis der Prüfung. True = Fehler vorhanden und emit gesendet , False = Kein Fehler vorhanden.
 */
-function guardian(data, clientId, options) {
-  if (!data) {
-    return "data"
+function guardian(obj, client, options) {
+  logger.debug("methode : guardian called");
+  let check = false;
+
+  if (!obj) {
+    logger.error(`data is not set`)
+    client.emit("error", { message: "data is not set", type: "critical" });
+    return true;
   }
 
-  const room = position[clientId];
-
-  if (!room) {
-    return "room"
+  if(!options || !options.includes("gameId")){
+    const room = position[client.id];
+    if (!room) {
+      logger.error(`Lobby is not available`);
+      client.emit("error", { message: `Lobby is not available`, type: "critical" });
+      return true;
+    }
   }
 
   if (options) {
-    let check = false;
-    options.forEach(opt => {
-      if (check) {
-        return;
-      }
+    for (let i = 0; i < options.length; i++) {
       if (opt !== "host") {
-        data[opt] ? true : check = opt;
+        obj[opt] ? true : check = opt;
       } else {
-        lobbys.room.host != clientId ? check = "host" : false;
+        lobbys.room.host != client ? check = "host" : false;
       }
-    });
-    return check;
+      if (check) {
+        if (check == "host") {
+          logger.error(`No permission. Requester : ${client.id} , Host : ${lobbys[room].host}`);
+          client.emit('error', { message: 'No permission', type: "critical" });
+        } else {
+          logger.error(`data.${check} is not set`);
+          client.emit("error", { message: `data.${check} is not set`, type: "critical" });
+        }
+        break;
+      }
+    }
   }
 
-  return false;
+  logger.debug("exit methode : guardian");
+  return check ? true : false;
 }
 
 module.exports = connection;
@@ -765,4 +779,5 @@ module.exports = connection;
   { socketId: '1223', points: 0, answer: false },
   { socketId: 'asdasd', points: 50, answer: false }
 ]
+
 */
