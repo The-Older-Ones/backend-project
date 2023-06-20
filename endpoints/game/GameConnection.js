@@ -504,14 +504,14 @@ async function giveQuestion(data) {
     const question = await GameService.getRandomQuestion(category, difficulty);
 
     lobbys[room].question = question;
-    
+
     const userQuestion = {
       category: question.category,
       difficulty: question.difficulty,
       question: question.question,
       allAnswers: question.allAnswers,
     };
-    
+
     logger.info(`Generate question successfully`)
     gameSocket.to(room).emit("givenQuestion", userQuestion);
 
@@ -690,6 +690,41 @@ function lobbySynchro(data) {
   this.to(room).emit("synchronizedLobby", data)
 }
 
+/** Funktion um vorhanden sein der gegebenen daten / parametern zu prüfen.
+@param {object} data - Objekt mit verschiedenen Properties.
+@param {string} clientId - SocketID des Users der die Anfrage stellt
+@param {Array} options - Properties die data enthalten soll. Zusätzlich kann "host" angegeben werden falls der User der Host des Room´s sein soll.
+@returns {string|boolean} - String des nicht vorhandenen Datensatzes. Falls es keine Probleme gibt wird false zurückgegeben.
+*/
+function guardian(data, clientId, options) {
+  if (!data) {
+    return "data"
+  }
+
+  const room = position[clientId];
+
+  if (!room) {
+    return "room"
+  }
+
+  if (options) {
+    let check = false;
+    options.forEach(opt => {
+      if (check) {
+        return;
+      }
+      if (opt !== "host") {
+        data[opt] ? true : check = opt;
+      } else {
+        lobbys.room.host != clientId ? check = "host" : false;
+      }
+    });
+    return check;
+  }
+
+  return false;
+}
+
 module.exports = connection;
 
 
@@ -730,5 +765,4 @@ module.exports = connection;
   { socketId: '1223', points: 0, answer: false },
   { socketId: 'asdasd', points: 50, answer: false }
 ]
-
 */
