@@ -504,14 +504,14 @@ async function giveQuestion(data) {
     const question = await GameService.getRandomQuestion(category, difficulty);
 
     lobbys[room].question = question;
-    
+
     const userQuestion = {
       category: question.category,
       difficulty: question.difficulty,
       question: question.question,
       allAnswers: question.allAnswers,
     };
-    
+
     logger.info(`Generate question successfully`)
     gameSocket.to(room).emit("givenQuestion", userQuestion);
 
@@ -693,12 +693,12 @@ function lobbySynchro(data) {
 /** Funktion um vorhanden sein der gegebenen daten / parametern zu prüfen. Sendet im Fehlerfall emit("error").
 @param {object} obj - Objekt mit verschiedenen Properties.
 @param {object} client - Socket-Object des Users der die Anfrage stellt
-@param {Array} options - Properties die data enthalten soll. Zusätzlich kann "host" angegeben werden falls der User der Host des Room´s sein soll.
+@param {Array} options - Properties die data enthalten soll. Zusätzlich kann "host" angegeben werden falls der User der Host des Room´s sein soll oder
+"room" wenn die Lobby geprüft werden soll. Wird "host" angegeben inkludiert dies automatisch "room".
 @returns {boolean} - Ergebnis der Prüfung. True = Fehler vorhanden und emit gesendet , False = Kein Fehler vorhanden.
 */
 function guardian(obj, client, options) {
   logger.debug("methode : guardian called");
-  let check = false;
 
   if (!obj) {
     logger.error(`data is not set`)
@@ -706,8 +706,8 @@ function guardian(obj, client, options) {
     return true;
   }
 
-  if(!options || !options.includes("gameId")){
-    const room = position[client.id];
+  const room = position[client.id];
+  if (options && (options.includes("host") || options.includes("room"))) {
     if (!room) {
       logger.error(`Lobby is not available`);
       client.emit("error", { message: `Lobby is not available`, type: "critical" });
@@ -715,8 +715,11 @@ function guardian(obj, client, options) {
     }
   }
 
+  let check = false;
+
   if (options) {
     for (let i = 0; i < options.length; i++) {
+      const opt = options[i];
       if (opt !== "host") {
         obj[opt] ? true : check = opt;
       } else {
