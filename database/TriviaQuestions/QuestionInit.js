@@ -55,7 +55,7 @@ const check = () => {
     const hashMap = {};
 
     catalog.forEach(q => {
-        category = q.category;
+        const category = q.category;
         if (!hashMap[category]) {
             hashMap[category] = [];
         }
