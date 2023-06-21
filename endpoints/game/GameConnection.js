@@ -38,14 +38,12 @@ const connection = (io) => {
 
 async function createGame(data) {
   logger.debug("methode : createGame called")
+
+  const guard = guardian(data, this, ["playerName"]);
+  if (guard) return;
+
   const hostName = data.playerName;
   const token = data.token;
-
-  if (!hostName) {
-    logger.error("data.playerName is not set");
-    this.emit("error", { message: "data.playerName is not set", type: "critical" })
-    return;
-  }
 
   let verify = authenticated(token);
   if (verify.error) {
