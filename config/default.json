@@ -22,6 +22,6 @@
         "maxExtension" : 1
     },
     "loggingEnabledFile" : false,
-    "loggingEnabledConsole" : true,
+    "loggingEnabledConsole" : false,
     "loggingLevel" : "debug"
 }
