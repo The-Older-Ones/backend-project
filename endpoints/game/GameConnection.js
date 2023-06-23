@@ -38,14 +38,15 @@ const connection = (io) => {
 
 async function createGame(data) {
   logger.debug("methode : createGame called")
-  const hostName = data.playerName;
-  const token = data.token;
 
-  if (!hostName) {
-    logger.error("data.playerName is not set");
-    this.emit("error", { message: "data.playerName is not set", type: "critical" })
+  const guard = guardian(data, ["playerName"]);
+  if (guard) {
+    this.emit("error", guard);
     return;
   }
+
+  const hostName = data.playerName;
+  const token = data.token;
 
   let verify = authenticated(token);
   if (verify.error) {
@@ -172,7 +173,14 @@ function authenticated(token) {
 }
 
 function joinLobby(data) {
-  logger.debug("methode : joinLobby called")
+  logger.debug("methode : joinLobby called");
+
+  const guard = guardian(data, ["gameId", "playerName"]);
+  if (guard) {
+    this.emit("error", guard);
+    return;
+  }
+
   const lobbyId = data.gameId;
   const playerName = data.playerName;
   const token = data.token;
@@ -180,12 +188,6 @@ function joinLobby(data) {
   if (typeof lobbys[lobbyId] === 'undefined' || lobbys[lobbyId].locked === true) {
     logger.error("Lobby is not available + " + lobbyId);
     this.emit('error', { message: 'Lobby is not available', type: "critical" });
-    return;
-  }
-
-  if (!playerName) {
-    logger.error("data.playerName is not set");
-    this.emit("error", { message: "data.playerName is not set", type: "critical" })
     return;
   }
 
@@ -213,7 +215,7 @@ function joinLobby(data) {
   Object.keys(lobbys[lobbyId].player).forEach((socketId) => {
     lobbyMember.push({ socketId: socketId, playerName: lobbys[lobbyId].player[socketId].name });
   });
-  //Zusatz FE
+
   lobbyMember.push({ socketId: this.id, playerName: playerName });
 
   position[this.id] = lobbyId;
@@ -241,8 +243,21 @@ function joinLobby(data) {
 
 function updateHost(data) {
   logger.debug("methode : updateHost called")
+
+  if (!data) {
+    logger.error(`data is not set`)
+    return { message: "data is not set", type: "critical" };
+  }
+
   const socket = data.socket ? data.socket : this;
   const room = position[socket.id];
+
+  if (!room) {
+    logger.error(`Player not listed in any Lobby`)
+    this.emit('error', { message: 'Not a player of this lobby', type: "critical" })
+    return;
+  }
+
   const newHost = data.newHost ? data.newHost : Object.keys(lobbys[room].player)[0];
 
   const currentHost = lobbys[room].host
@@ -254,7 +269,7 @@ function updateHost(data) {
   }
 
   if (currentHost == newHost) {
-    logger.warn(`Already host.Requester : ${this.id} , Host : ${currentHost}`)
+    logger.warn(`Already host. Requester : ${this.id} , Host : ${currentHost}`)
     socket.emit("error", { message: "Already host", type: "warning" });
     return;
   }
@@ -278,6 +293,12 @@ function updateHost(data) {
 
 function setRounds(data) {
   logger.debug("methode : setRounds called")
+
+  if (!data) {
+    logger.error(`data is not set`)
+    return { message: "data is not set", type: "critical" };
+  }
+
   const room = position[this.id];
 
   if (!room || lobbys[room].host != this.id) {
@@ -336,6 +357,12 @@ function setRounds(data) {
 
 function setPlayerNumber(data) {
   logger.debug("methode : setPlayerNumber called")
+
+  if (!data) {
+    logger.error(`data is not set`)
+    return { message: "data is not set", type: "critical" };
+  }
+
   const room = position[this.id];
 
   if (!room || lobbys[room].host != this.id) {
@@ -399,6 +426,12 @@ function setPlayerNumber(data) {
 
 function setExtension(data) {
   logger.debug("methode : setExtension called")
+
+  if (!data) {
+    logger.error(`data is not set`)
+    return { message: "data is not set", type: "critical" };
+  }
+
   const room = position[this.id];
 
   if (!room || lobbys[room].host != this.id) {
@@ -422,6 +455,12 @@ function setExtension(data) {
 
 async function startGame(data) {
   logger.debug("methode : startGame called")
+
+  if (!data) {
+    logger.error(`data is not set`)
+    return { message: "data is not set", type: "critical" };
+  }
+
   try {
     const room = position[this.id];
     if (!room) {
@@ -475,6 +514,12 @@ async function startGame(data) {
 
 async function giveQuestion(data) {
   logger.debug("methode : giveQuestion called")
+
+  if (!data) {
+    logger.error(`data is not set`)
+    return { message: "data is not set", type: "critical" };
+  }
+
   try {
     // TODO Feature Training -> auch möglich wenn valider Token mitgeliefert wird | rounds = 0 behandlung
     const room = position[this.id];
@@ -504,14 +549,14 @@ async function giveQuestion(data) {
     const question = await GameService.getRandomQuestion(category, difficulty);
 
     lobbys[room].question = question;
-    
+
     const userQuestion = {
       category: question.category,
       difficulty: question.difficulty,
       question: question.question,
       allAnswers: question.allAnswers,
     };
-    
+
     logger.info(`Generate question successfully`)
     gameSocket.to(room).emit("givenQuestion", userQuestion);
 
@@ -524,6 +569,12 @@ async function giveQuestion(data) {
 
 function setAnswer(data) {
   logger.debug("methode : setAnswer called")
+
+  if (!data) {
+    logger.error(`data is not set`)
+    return { message: "data is not set", type: "critical" };
+  }
+  
   const room = position[this.id];
 
   if (!room) {
@@ -688,6 +739,38 @@ function newGame(data) {
 function lobbySynchro(data) {
   const room = position[this.id];
   this.to(room).emit("synchronizedLobby", data)
+}
+
+/** Funktion um vorhanden sein der gegebenen daten / parametern zu prüfen.
+@param {object} obj - Objekt mit verschiedenen Properties.
+@param {String[]} options - Properties die data enthalten soll.
+@returns {object | boolean} Sendet im Fehlerfall {message : String , type : "critical"} ansonsten false.
+*/
+function guardian(obj, options) {
+  logger.debug("methode : guardian called");
+
+  if (!obj) {
+    logger.error(`data is not set`)
+    return { message: "data is not set", type: "critical" };
+  }
+
+  let check = false;
+  let result = false;
+
+  if (options) {
+    for (let i = 0; i < options.length; i++) {
+      obj[options[i]] ? true : check = opt;
+
+      if (check) {
+        logger.error(`data.${check} is not set`);
+        result = { message: `data.${check} is not set`, type: "critical" };
+        break;
+      }
+    }
+  }
+
+  logger.debug("exit methode : guardian");
+  return result;
 }
 
 module.exports = connection;
