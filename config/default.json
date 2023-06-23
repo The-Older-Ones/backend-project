@@ -1,27 +1,27 @@
 {
-    "session": {
-        "tokenKey": "lIUD7pur9Unj-HgpSAoGySD0TbRSE2",
-        "timeout": "24h"
-    },
-    "db": {
-        "connectionOptions": {
-            "useNewUrlParser": true,
-            "useUnifiedTopology": true
-        },
-        "connectionString": "mongodb://127.0.0.1/ProjectDB"
-    },
-    "game" : {
-        "codeSize" : 4,
-        "difficultys" : ["100","200","300","600","1000"],
-        "defaultRounds" : 4,
-        "minRounds" : 3,
-        "maxRounds" : 30,
-        "defaultPlayerNumber" : 4,
-        "minPlayerNumber" : 2,
-        "maxPlayerNumber" : 6,
-        "maxExtension" : 1
-    },
-    "loggingEnabledFile" : true,
-    "loggingEnabledConsole" : true,
-    "loggingLevel" : "debug"
+	"session": {
+		"tokenKey": "lIUD7pur9Unj-HgpSAoGySD0TbRSE2",
+		"timeout": "24h"
+	},
+	"db": {
+		"connectionOptions": {
+			"useNewUrlParser": true,
+			"useUnifiedTopology": true
+		},
+		"connectionString": "mongodb+srv://yejay:X2TmYbofpAdktBEu@clusteryd.wczr73d.mongodb.net/triviosa?retryWrites=true&w=majority"
+	},
+	"game": {
+		"codeSize": 4,
+		"difficultys": ["100", "200", "300", "600", "1000"],
+		"defaultRounds": 4,
+		"minRounds": 3,
+		"maxRounds": 30,
+		"defaultPlayerNumber": 4,
+		"minPlayerNumber": 2,
+		"maxPlayerNumber": 6,
+		"maxExtension": 1
+	},
+	"loggingEnabledFile": true,
+	"loggingEnabledConsole": true,
+	"loggingLevel": "debug"
 }
