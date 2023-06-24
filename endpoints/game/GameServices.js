@@ -79,8 +79,6 @@ async function checkCategory(categories) {
       }
     });
 
-    // Hier noch einfügen das aus der DB rausgefickt wird bzw auf eisgelegt, Danke, bitte tschau. gez. die freundliche Spinne aus der Nachbarschaft
-
     throw new Error(`${missing.category} does not have enough questions for all difficulties`);
 
   } catch (error) {
