@@ -1,3 +1,4 @@
+require('dotenv').config();
 const userService = require('../user/UserService');
 const jwt = require('jsonwebtoken');
 const config = require("config");
@@ -8,7 +9,7 @@ function createToken(content, callback) {
     userService.authenticate(content, function (err, user) {
         if (user) {
             const expiresAt = config.get("session.timeout");
-            const privateKey = config.get("session.tokenKey");
+            const privateKey = process.env.TOKEN_KEY;
             const token = jwt.sign({ "user": user.userID, "isAdministrator": user.isAdministrator }, privateKey, { expiresIn: expiresAt, algorithm: "HS256" });
             logger.info("Token created for user:", user.userID);
             callback(null, token);

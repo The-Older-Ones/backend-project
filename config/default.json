@@ -1,14 +1,12 @@
 {
 	"session": {
-		"tokenKey": "lIUD7pur9Unj-HgpSAoGySD0TbRSE2",
 		"timeout": "24h"
 	},
 	"db": {
 		"connectionOptions": {
 			"useNewUrlParser": true,
 			"useUnifiedTopology": true
-		},
-		"connectionString": "mongodb+srv://yejay:X2TmYbofpAdktBEu@clusteryd.wczr73d.mongodb.net/triviosa?retryWrites=true&w=majority"
+		}
 	},
 	"game": {
 		"codeSize": 4,
