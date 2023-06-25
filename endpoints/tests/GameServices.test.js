@@ -21,31 +21,36 @@ const questionSet = [
 ];
 
 jest.mock('../../database/TriviaQuestions/QuestionModel', () => ({
-    find: jest.fn().mockResolvedValue([
-        {
-            category: 'Category 1',
-            difficulty: 'Easy',
-            question: 'Question 1',
-            incorrect_answers: ['Answer 1', 'Answer 2'],
-            correct_answer: 'Answer 3'
-        },
-        {
-            category: 'Category 1',
-            difficulty: 'Medium',
-            question: 'Question 2',
-            incorrect_answers: ['Answer 4', 'Answer 5'],
-            correct_answer: 'Answer 6'
-        },
-        {
-            category: 'Category 2',
-            difficulty: 'Hard',
-            question: 'Question 3',
-            incorrect_answers: ['Answer 7', 'Answer 8'],
-            correct_answer: 'Answer 9'
-        }
-    ]),
+    find: jest.fn().mockImplementation(({ category, difficulty }) => {
+        const filteredQuestions = [
+            {
+                category: 'Category 1',
+                difficulty: 'Easy',
+                question: 'Question 1',
+                incorrect_answers: ['Answer 1', 'Answer 2'],
+                correct_answer: 'Answer 3'
+            },
+            {
+                category: 'Category 1',
+                difficulty: 'Medium',
+                question: 'Question 2',
+                incorrect_answers: ['Answer 4', 'Answer 5'],
+                correct_answer: 'Answer 6'
+            },
+            {
+                category: 'Category 2',
+                difficulty: 'Hard',
+                question: 'Question 3',
+                incorrect_answers: ['Answer 7', 'Answer 8'],
+                correct_answer: 'Answer 9'
+            }
+        ];
+
+        return Promise.resolve(filteredQuestions.filter(q => q.category === category && q.difficulty === difficulty));
+    }),
     aggregate: jest.fn().mockResolvedValue(questionSet)
 }));
+
 
 jest.mock('config', () => ({
     game: {
@@ -75,10 +80,15 @@ describe('Trivia Game Functions', () => {
         it('should retrieve a random question based on category and difficulty', async () => {
             const question = await getRandomQuestion('Category 1', 'Easy');
 
-            expect(question).toHaveProperty('category', expect.stringMatching(/Category 1|Category 2/));
+            expect(Question.find).toHaveBeenCalledWith({
+                category: 'Category 1',
+                difficulty: 'Easy'
+            });
+
+            expect(question).toHaveProperty('category', 'Category 1');
             expect(question).toHaveProperty('difficulty', 'Easy');
-            expect(question).toHaveProperty('question', expect.any(String));
-            expect(question.allAnswers).toHaveLength(3); // The correct answer is not included in allAnswers
+            expect(question).toHaveProperty('question', 'Question 1');
+            expect(question.allAnswers).toHaveLength(3);
             expect(question.allAnswers).toContain('Answer 1');
             expect(question.allAnswers).toContain('Answer 2');
             expect(question.allAnswers).toContain('Answer 3');
@@ -142,8 +152,8 @@ describe('Trivia Game Functions', () => {
             await checkCategory(categories);
             // Wenn die Funktion keinen Fehler wirft, soll der Test fehlschlagen
             fail('Expected checkCategory to throw an error');
-          } catch (error) {
+        } catch (error) {
             expect(error.message).toContain('Failed to aggregate questions');
-          }
+        }
     });
 });
