@@ -5,7 +5,7 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "test": "jest AuthenticationService.test.js"
+    "test": "jest GameServices.test.js"
   },
   "author": "Vasiliki Ioannidou & Marcus Schumann",
   "license": "ISC",
