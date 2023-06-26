@@ -82,9 +82,9 @@ const check = () => {
 }
 
 const fillDB = async () => {
-    const savePromises = catalog.map((questionObject) => {
+    const savePromises = catalog.map(async (questionObject) => {
         try {
-            Question.create(questionObject)
+            await Question.create(questionObject)
         } catch (err) {
             logger.error("Error saving question:", questionObject.question, err);
         }
