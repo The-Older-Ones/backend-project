@@ -16,7 +16,7 @@ jobs:
     - name: Checkout code
       uses: actions/setup-node@v2
       with:
-        node-version: 19
+        node-version: 15
         
     - name: Print current working directory
       run: pwd
