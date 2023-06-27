@@ -51,7 +51,8 @@ const io = socketIO(server, {
 
 connection(io.of('/api/game'));
 
-const port = 80;
+// const port = 80;
+const port = process.env.PORT || 80;
 server.listen(port, () =>{
     logger.info(`Server started on port ${port}`);
 });
