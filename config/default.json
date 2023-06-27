@@ -21,6 +21,5 @@
 	},
 	"loggingEnabledFile": true,
 	"loggingEnabledConsole": true,
-	"loggingLevel": "debug",
-	"test":true
+	"loggingLevel": "debug"
 }
