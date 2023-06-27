@@ -1,6 +1,7 @@
+require('dotenv').config();
 const config = require("config");
 const Mongoose = require("mongoose");
-const ConnectionString = config.get("db.connectionString");
+const ConnectionString = process.env.DATABASE_URL;
 const ConnectionOptions = config.get("db.connectionOptions");
 
 async function dbStart(callback) {

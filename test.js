@@ -10,6 +10,7 @@
 // // TODO - to test socket.io 
 const gameServices = require("./endpoints/game/GameServices")
 const database = require('./database/db');
+const model = require ("./database/TriviaQuestions/QuestionModel")
 
 database((err) => {
     if (err) {
@@ -19,55 +20,12 @@ database((err) => {
     }
 });
 
-async function testGetRandomQuestion() {
-
-    const test = {
-        question: {
-            correct_answer: "Maul Affe",
-            difficulty: "666"
-        },
-        player: {
-            1223: {
-                points: 0,
-                answer: "tutt"
-            },
-            999: {
-                points: 100,
-                answer: "Maul Affe"
-            },
-            100: {
-                points: 99999,
-                answer: "asd"
-            },
-            "asdasd": {
-                points: 50,
-                answer: "asd"
-            }
-        }
-    }
-
-
-
-    const rückgabe = Object.entries(test.player).map(([socketId, properties]) => {
-        let query = false;
-        if (properties.answer == test.question.correct_answer) {
-          properties.points += parseInt(test.question.difficulty);
-          query = true;
-        }
-        return (
-          {
-            socketId: socketId,
-            points: properties.points,
-            answer: query
-          }
-        )
-      }).sort((a, b) => {
-        const pointsA = Object.values(a)[0].points;
-        const pointsB = Object.values(b)[0].points;
-        return pointsB - pointsA;
-      });
-
-    console.log(rückgabe)
+async function countAllQuestionsInDB() {
+    const all = await gameServices.getCategoryList();
+    all.forEach( async (q) =>{
+        const numbe = await model.countDocuments({category : [q]})
+        console.log(`${q} : ${numbe}`)
+    })
 }
 
 testGetRandomQuestion()
