@@ -1,13 +1,6 @@
 const UserService = require('../user/UserService');
 const User = require('../user/UserModel');
 
-// Mocking the logger module
-// jest.mock('../../logger', () => ({
-//   debug: jest.fn(),
-//   error: jest.fn(),
-//   info: jest.fn(),
-// }));
-
 describe('createUser', () => {
     afterEach(() => {
         jest.clearAllMocks();
@@ -23,7 +16,6 @@ describe('createUser', () => {
 
         await expect(UserService.createUser(newUser)).rejects.toThrowError('Please fill all required fields');
         expect(User.create).not.toHaveBeenCalled();
-        // expect(logger.error).toHaveBeenCalledWith('Please fill all required fields');
     });
 
     /*__________________________Test klappt, aber Timeout__________________________ */
@@ -59,7 +51,6 @@ describe('createUser', () => {
         await expect(UserService.createUser(newUser)).rejects.toThrowError('User with the same UserID or Email already exists');
         expect(User.create).toHaveBeenCalledWith(newUser);
         expect(User.findOne).toHaveBeenCalledWith({ userID: newUser.userID });
-        // expect(logger.error).toHaveBeenCalledWith('User with the same UserID or Email already exists');
     });
 
     /*_________________________________________TIMEOUT___________________________________________
@@ -74,7 +65,6 @@ describe('createUser', () => {
             await expect(UserService.createUser(newUser)).rejects.toThrowError('Error while creating User');
             expect(User.create).toHaveBeenCalledWith(newUser);
             expect(User.findOne).toHaveBeenCalledWith({ userID: newUser.userID });
-            // expect(logger.error).toHaveBeenCalledWith('Error while creating User');
           });
     ________________________________________________________________________________________________*/
 
@@ -109,7 +99,6 @@ describe('createUser', () => {
         await expect(UserService.createUser(newUser)).resolves.toEqual(expectedSubset);
         expect(User.create).toHaveBeenCalledWith(newUser);
         expect(User.findOne).not.toHaveBeenCalled();
-        // expect(logger.info).toHaveBeenCalledWith('User created:', expectedSubset);
     });
 });
 
@@ -154,7 +143,6 @@ describe('createUser', () => {
 
         expect(User.findOne).toHaveBeenCalledWith({ userID: loginUser.username });
         expect(user.comparePassword).toHaveBeenCalledWith(loginUser.password, expect.any(Function));
-        // expect(logger.error).toHaveBeenCalledWith('Authentication failed');
         expect(callback).toHaveBeenCalledWith(true, null);
       });
 
@@ -178,7 +166,6 @@ describe('createUser', () => {
 
     //     expect(User.findOne).toHaveBeenCalledWith({ userID: loginUser.username });
     //     expect(user.comparePassword).toHaveBeenCalledWith(loginUser.password, expect.any(Function));
-    //     expect(logger.info).toHaveBeenCalledWith('Authentication successful:', user);
     //     expect(callback).toHaveBeenCalledWith(null, user);
     //   });
 });
