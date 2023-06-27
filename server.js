@@ -21,7 +21,8 @@ const logger = require("./logger")
 // });
 
 app.use(cors({
-    exposedHeaders: ['Authorization']
+    exposedHeaders: ['Authorization'],
+    origin: 'https://triviosa.netlify.app'
 }));
 app.use(bodyparser.json());
 app.use('/api/users', userRoutes);
