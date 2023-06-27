@@ -21,6 +21,9 @@ jobs:
     - name: Print current working directory
       run: pwd
 
+    - name: List files in the working directory
+      run: ls -al
+
     - name: Install dependencies
       run: npm ci
       
