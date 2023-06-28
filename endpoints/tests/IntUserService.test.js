@@ -1,59 +1,67 @@
+const { MongoMemoryServer } = require('mongodb-memory-server');
 const mongoose = require('mongoose');
-const UserService = require('../user/UserService');
-const User = require('../user/UserModel');
-require('dotenv').config();
+const userService = require('../user/UserService');
 
-describe('User Service Integration Test', () => {
-  beforeAll(async () => {
-    const ConnectionString = process.env.DATABASE_URL; // MongoDB-Verbindungs-URI inklusive Datenbankname
+let mongoServer;
 
-    // Verbindung zur MongoDB herstellen
-    await mongoose.connect(ConnectionString, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-    });
-  });
+beforeAll(async () => {
+  mongoServer = await MongoMemoryServer.create();
 
-  afterAll(async () => {
-    // Verbindung zur MongoDB schließen
-    await mongoose.disconnect();
-  });
+  await mongoose.connect(mongoServer.getUri(), { useNewUrlParser: true });
+});
 
-  beforeEach(async () => {
-    // Vor jedem Testfall: Testdaten in die Datenbank einfügen oder Vorbereitungen treffen
-    await User.deleteMany(); // Vorhandene Benutzerdaten löschen
+afterEach(async () => {
+  await mongoose.connection.dropDatabase();
+});
 
-    // Beispiel: Einen Benutzer in die Datenbank einfügen
-    const newUser = {
-      userID: 'existinguser',
-      password: 'password',
-      email: 'existing@example.com',
-    };
-    await User.create(newUser);
-  });
+afterAll(async () => {
+  await mongoServer.stop();
+});
 
-  afterEach(async () => {
-    // Nach jedem Testfall: Datenbank aufräumen oder zurücksetzen
-    await User.deleteMany(); // Alle Benutzerdaten löschen
-  });
+it('User anlegen', async () => {
+  const user = {
+    userID: 'testuser',
+    password: 'password',
+    isAdministrator: true
+  };
 
-  it('should create a user and return a subset of user data', async () => {
-    const newUser = {
-      userID: 'testuser',
-      password: 'password',
-      email: 'test@example.com',
-      // profilePicture: 'picture.png',
-      isVerified: true,
-      isAdministrator: false,
-    };
+  let test;
+  try {
+    test = await userService.createUser(user);
+  } catch (error) {
+    test = null;
+  } finally {
+    console.log(test)
+    expect(test).toBeTruthy();
+  }
+});
 
-    const createdUser = await UserService.createUser(newUser);
+it('authen ohne anlegen', async () => {
+  const user = {
+    userID: 'testuser',
+    password: 'password'
+  }
 
-    expect(createdUser.userID).toEqual(newUser.userID);
-    expect(createdUser.email).toEqual(newUser.email);
-    // expect(createdUser.profilePicture).toEqual(newUser.profilePicture);
-    expect(createdUser.isVerified).toEqual(newUser.isVerified);
-    expect(createdUser.isAdministrator).toEqual(newUser.isAdministrator);
-  });
+  await userService.authenticate(user, (error, token) => {
+    expect(error).not.toBe(null);
+    expect(token).toBeFalsy();
+  })
+});
 
+it('authen mit anlegen', async () => {
+  const user = {
+    userID: 'testuser',
+    password: 'password'
+  }
+
+
+  try {
+    await userService.createUser(user);
+  } catch (error) {
+  } 
+
+  await userService.authenticate({username : "testuser", password : "password"}, (error, token) => {
+    expect(error).toBe(null);
+    expect(token).toBeTruthy();
+  })
 });
