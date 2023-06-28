@@ -1,6 +1,7 @@
 const userService = require('../user/UserService');
 const jwt = require('jsonwebtoken');
 const config = require("config");
+require('dotenv').config();
 const { createToken } = require('../authentication/AuthenticationService');
 
 jest.mock('../user/UserService');
@@ -55,7 +56,7 @@ describe('createToken', () => {
 
         config.get.mockImplementation((key) => {
             if (key === 'session.timeout') return expiresAt;
-            if (key === 'session.tokenKey') return privateKey;
+            if (key === process.env.TOKEN_KEY) return privateKey;
         });
 
         jwt.sign.mockReturnValue(token);
