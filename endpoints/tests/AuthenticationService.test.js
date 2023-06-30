@@ -1,12 +1,15 @@
 const userService = require('../user/UserService');
 const jwt = require('jsonwebtoken');
 const config = require("config");
+require('dotenv').config();
 const { createToken } = require('../authentication/AuthenticationService');
 jest.mock('../user/UserService');
 jest.mock('jsonwebtoken');
 jest.mock('config');
 
+
 describe('createToken', () => {
+    process.env = {TOKEN_KEY : "123456"};
     afterEach(() => {
         jest.clearAllMocks();
     });
