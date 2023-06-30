@@ -709,7 +709,7 @@ function newGame(io, socket) {
 }
 
 function lobbySynchro(socket, data) {
-    const room = position[this.id];
+    const room = position[socket.id];
     socket.to(room).emit("synchronizedLobby", data)
 }
 
