@@ -18,7 +18,6 @@ describe('createUser', () => {
         expect(User.create).not.toHaveBeenCalled();
     });
 
-    /*__________________________Test klappt, aber Timeout__________________________ */
     it('should throw an error if User.create throws a validation error', async () => {
         const newUser = {
             userID: 'testuser',
@@ -52,21 +51,6 @@ describe('createUser', () => {
         expect(User.create).toHaveBeenCalledWith(newUser);
         expect(User.findOne).toHaveBeenCalledWith({ userID: newUser.userID });
     });
-
-    /*_________________________________________TIMEOUT___________________________________________
-          it('should throw an error if an error occurs while creating the user', async () => {
-            const newUser = {
-              userID: 'testuser',
-              password: 'password',
-            };
-    
-            User.create = jest.fn().mockRejectedValue(new Error('Error while creating User'));
-    
-            await expect(UserService.createUser(newUser)).rejects.toThrowError('Error while creating User');
-            expect(User.create).toHaveBeenCalledWith(newUser);
-            expect(User.findOne).toHaveBeenCalledWith({ userID: newUser.userID });
-          });
-    ________________________________________________________________________________________________*/
 
     it('should create a user and return a subset of user data', async () => {
         const newUser = {
@@ -145,27 +129,4 @@ describe('createUser', () => {
         expect(user.comparePassword).toHaveBeenCalledWith(loginUser.password, expect.any(Function));
         expect(callback).toHaveBeenCalledWith(true, null);
       });
-
-    //   it('should call the callback with the user object if authentication is successful', async () => {
-    //     const loginUser = {
-    //       username: 'testuser',
-    //       password: 'password',
-    //     };
-
-    //     const user = {
-    //       comparePassword: jest.fn().mockImplementation((password, callback) => {
-    //         callback(null, true);
-    //       }),
-    //     };
-
-    //     User.findOne.mockResolvedValue(user);
-
-    //     const callback = jest.fn();
-
-    //     await UserService.authenticate(loginUser, callback);
-
-    //     expect(User.findOne).toHaveBeenCalledWith({ userID: loginUser.username });
-    //     expect(user.comparePassword).toHaveBeenCalledWith(loginUser.password, expect.any(Function));
-    //     expect(callback).toHaveBeenCalledWith(null, user);
-    //   });
 });

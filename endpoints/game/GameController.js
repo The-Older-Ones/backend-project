@@ -1,3 +1,4 @@
+require('dotenv').config();
 const GameService = require("./GameServices")
 const jwt = require('jsonwebtoken');
 const config = require("config");
@@ -128,7 +129,7 @@ function authenticated(token) {
         return false;
     }
     let verify;
-    const privateKey = config.get("session.tokenKey");
+    const privateKey = process.env.TOKEN_KEY;
     jwt.verify(token, privateKey, { algorithms: "HS256" }, function (err, result) {
         if (result) {
             verify = true;
@@ -158,11 +159,20 @@ function joinLobby(io, socket, data) {
         return;
     }
 
-    const playersInLobby = Object.keys(lobbys[lobbyId].player).length;
+    const playersInLobby = Object.keys(lobbys[lobbyId].player);
+    
+    if (playersInLobby.includes(socket.id)) {
+        logger.warn("Player already in Lobby: " + lobbyId);
+        socket.emit("error", { message: "Player already in Lobby", type: "warning" })
+        return;
+    }
+
+    const playerNumberInLobby = playersInLobby.length;
     const lobbyMaxPlayer = lobbys[lobbyId].player.playerNumber;
 
-    if (playersInLobby == lobbyMaxPlayer) {
-        logger.error(`Lobby is full ${playersInLobby} : ${lobbyMaxPlayer}`);
+
+    if (playerNumberInLobby == lobbyMaxPlayer) {
+        logger.error(`Lobby is full ${playerNumberInLobby} : ${lobbyMaxPlayer}`);
         socket.emit("error", { message: "Lobby is full", type: "critical" })
         return;
     }

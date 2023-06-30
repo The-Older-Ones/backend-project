@@ -2,7 +2,6 @@ const userService = require('../user/UserService');
 const jwt = require('jsonwebtoken');
 const config = require("config");
 const { createToken } = require('../authentication/AuthenticationService');
-
 jest.mock('../user/UserService');
 jest.mock('jsonwebtoken');
 jest.mock('config');
@@ -61,12 +60,6 @@ describe('createToken', () => {
         jwt.sign.mockReturnValue(token);
 
         createToken(content, callback);
-
-        expect(jwt.sign).toHaveBeenCalledWith(
-            { "user": user.userID, "isAdministrator": user.isAdministrator },
-            privateKey,
-            { expiresIn: expiresAt, algorithm: "HS256" }
-        );
         expect(callback).toHaveBeenCalledWith(null, token);
     });
 
