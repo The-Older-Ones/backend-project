@@ -731,7 +731,7 @@ function guardian(obj, options) {
 
     if (options) {
         for (let i = 0; i < options.length; i++) {
-            obj[options[i]] ? true : check = obj[options[i]];
+            obj[options[i]] ? true : check = options[i];
 
             if (check) {
                 logger.error(`data.${check} is not set`);
