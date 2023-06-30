@@ -9,9 +9,15 @@ jest.mock('config');
 
 
 describe('createToken', () => {
-    process.env = {TOKEN_KEY : "123456"};
+    let originalEnv;
+
+    beforeEach(() => {
+        originalEnv = { ...process.env };
+        process.env.TOKEN_KEY = '123456';
+    });
     afterEach(() => {
         jest.clearAllMocks();
+        process.env = originalEnv;
     });
 
     it('should call userService.authenticate with content', () => {
