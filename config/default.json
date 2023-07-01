@@ -6,7 +6,8 @@
 		"connectionOptions": {
 			"useNewUrlParser": true,
 			"useUnifiedTopology": true
-		}
+		},
+		"owner": "triviosa"
 	},
 	"game": {
 		"codeSize": 4,

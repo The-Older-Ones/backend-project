@@ -91,3 +91,15 @@ module.exports = {
   getRandomQuestion,
   checkCategory
 }
+
+/* 
+Alles muss neu angepasst werden da das DB Model gendert wurde und die Kategorien jetzt als FS in den Fragen abgespeichert werden, außerdem haben Fragen
+jetzt auch ein owner propertie welches den Besitzer anzeigt. Bei uns ist es trivios (zu ändern in der config unter db.onwer) und beim user wäre es seine _id.
+Es müssen so wenig anfragen wie möglich gestellt werden ( am besten nur eine ) um häufiges ein und austreten aus der Anwendung zu vermeiden.
+
+Momentan muss alls so angepasst werden, dass der normalzustand wiederhergestellt ist.
+
+-> 3 Modelle nutzen. List,Category und Question
+
+
+*/

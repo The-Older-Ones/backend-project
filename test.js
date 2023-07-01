@@ -21,12 +21,8 @@ database((err) => {
 });
 
 async function countAllQuestionsInDB() {
-    const all = await gameServices.getCategoryList();
-    all.forEach( async (q) =>{
-        const numbe = await model.countDocuments({category : [q]})
-        console.log(`${q} : ${numbe}`)
-    })
+    const all = await gameServices.getRandomQuestion("Animals","200");
 }
 
-testGetRandomQuestion()
+countAllQuestionsInDB()
 
