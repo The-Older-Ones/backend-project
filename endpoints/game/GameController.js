@@ -168,7 +168,7 @@ function joinLobby(io, socket, data) {
     }
 
     const playerNumberInLobby = playersInLobby.length;
-    const lobbyMaxPlayer = lobbys[lobbyId].player.playerNumber;
+    const lobbyMaxPlayer = lobbys[lobbyId].playerNumber;
 
 
     if (playerNumberInLobby == lobbyMaxPlayer) {
