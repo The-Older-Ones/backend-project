@@ -160,7 +160,7 @@ function joinLobby(io, socket, data) {
     }
 
     const playersInLobby = Object.keys(lobbys[lobbyId].player);
-    
+
     if (playersInLobby.includes(socket.id)) {
         logger.warn("Player already in Lobby: " + lobbyId);
         socket.emit("error", { message: "Player already in Lobby", type: "warning" })
@@ -674,7 +674,7 @@ function evaluation(io, room) {
 
     if (lobbyRoom.rounds == 0 && !lobbyRoom.extension) {
         logger.info(`Game : ${room} successfully finished`)
-        io.to(room).emit("gameFinished", { leaderboard: result });
+        io.to(room).emit("gameFinished", { leaderboard: result, rightAnswer: lobbyRoom.question.correct_answer });
         return;
     };
 
