@@ -13,7 +13,7 @@
 		"difficultys": ["100", "200", "300", "600", "1000"],
 		"defaultRounds": 4,
 		"minRounds": 3,
-		"maxRounds": 30,
+		"maxRounds": 25,
 		"defaultPlayerNumber": 4,
 		"minPlayerNumber": 2,
 		"maxPlayerNumber": 6,
