@@ -5,7 +5,7 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "test": "jest IntUserService.test.js"
+    "test": "jest"
   },
   "author": "Vasiliki Ioannidou & Marcus Schumann",
   "license": "ISC",

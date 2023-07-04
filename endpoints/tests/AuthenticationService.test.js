@@ -3,10 +3,25 @@ const jwt = require('jsonwebtoken');
 const config = require("config");
 require('dotenv').config();
 const { createToken } = require('../authentication/AuthenticationService');
+const { MongoMemoryServer } = require('mongodb-memory-server');
+const mongoose = require('mongoose')
 
 jest.mock('../user/UserService');
 jest.mock('jsonwebtoken');
 jest.mock('config');
+
+let originalEnv;
+
+beforeAll(async () => {
+  const mongoServer = await MongoMemoryServer.create();
+  await mongoose.connect(mongoServer.getUri(), { useNewUrlParser: true });
+  originalEnv = { ...process.env };
+  process.env.TOKEN_KEY = '123456';
+});
+afterAll(async () => {
+    jest.clearAllMocks();
+    process.env = originalEnv;
+})
 
 describe('createToken', () => {
     afterEach(() => {
@@ -33,43 +48,6 @@ describe('createToken', () => {
 
         expect(userService.authenticate).toHaveBeenCalledWith(content, expect.any(Function));
     });
-
-    // it('should call callback with token if authentication is successful', () => {
-    //     const content = {
-    //         username: 'exampleUser',
-    //         password: 'examplePassword'
-    //     };
-    //     const user = {
-    //         userID: 'testuser',
-    //         isAdministrator: true
-    //     };
-
-    //     const token = 'generated_token';
-    //     const expiresAt = '1h';
-    //     const privateKey = 'private_key';
-
-    //     const callback = jest.fn();
-
-    //     userService.authenticate.mockImplementation((content, cb) => {
-    //         cb(null, user);
-    //     });
-
-    //     config.get.mockImplementation((key) => {
-    //         if (key === 'session.timeout') return expiresAt;
-    //         if (key === process.env.TOKEN_KEY) return privateKey;
-    //     });
-
-    //     jwt.sign.mockReturnValue(token);
-
-    //     createToken(content, callback);
-
-    //     expect(jwt.sign).toHaveBeenCalledWith(
-    //         { "user": user.userID, "isAdministrator": user.isAdministrator },
-    //         privateKey,
-    //         { expiresIn: expiresAt, algorithm: "HS256" }
-    //     );
-    //     expect(callback).toHaveBeenCalledWith(null, token);
-    // });
 
     it('should call callback with error if authentication fails', () => {
         const content = {

@@ -4,7 +4,6 @@ const {
     checkCategory
 } = require('../game/GameServices');
 
-// Mocking dependencies
 const CategoryList = require('../../database/TriviaQuestions/CategoryListModel');
 const Question = require('../../database/TriviaQuestions/QuestionModel');
 const config = require('config');
@@ -87,7 +86,6 @@ describe('Trivia Game Functions', () => {
         });
 
         it('should throw an error if category list retrieval fails', async () => {
-            // Mocking the CategoryList.find() function to throw an error
             CategoryList.find.mockRejectedValueOnce(new Error('Failed to retrieve category list'));
 
             await expect(getCategoryList()).rejects.toThrow('Failed to retrieve category list');
@@ -116,21 +114,7 @@ describe('Trivia Game Functions', () => {
             expect(question).toHaveProperty('correct_answer', 'Answer 3');
         });
 
-        /*__________________________KLAPPT NICHT_______________________________________
-        aber ist auch ein unrealistischer Test
-
-        it('should throw an error if no questions are found for the given category and difficulty', async () => {
-            const nonExistentCategory = 'Non-existent Category';
-            const difficulty = 'Easy';
-          
-            await expect(getRandomQuestion(nonExistentCategory, difficulty)).rejects.toThrow(
-              'No questions found for the given category and difficulty.'
-            );
-          });
-          ________________________________________________________________________________*/
-
         it('should throw an error if question retrieval fails', async () => {
-            // Mocking the Question.find() function to throw an error
             Question.find.mockRejectedValueOnce(new Error('Failed to retrieve questions'));
 
             await expect(getRandomQuestion('Category 1', 'Easy')).rejects.toThrow(
@@ -139,21 +123,11 @@ describe('Trivia Game Functions', () => {
         });
     });
 
- /*__________________________KLAPPT NICHT_______________________________________  
-    describe('checkCategory', () => {
-          it('should return without error if all categories have enough questions for all difficulties', async () => {
-            const categories = ['Category 1'];
-            await expect(checkCategory(categories)).resolves.toBeUndefined();
-          });
-        
-     ________________________________________________________________________________*/
-
     it('should throw an error if a category does not have enough questions for all difficulties', async () => {
         const categories = ['Category 1', 'Category 2', 'Category 3'];
 
         try {
             await checkCategory(categories);
-            // Wenn die Funktion keinen Fehler wirft, soll der Test fehlschlagen
             fail('Expected checkCategory to throw an error');
         } catch (error) {
             expect(error.message).toContain('does not have enough questions for all difficulties');
@@ -161,14 +135,12 @@ describe('Trivia Game Functions', () => {
     });
 
     it('should throw an error if category check fails', async () => {
-        // Mocking the Question.aggregate() function to throw an error
         Question.aggregate.mockRejectedValueOnce(new Error('Failed to aggregate questions'));
 
         const categories = ['Category 1', 'Category 2'];
 
         try {
             await checkCategory(categories);
-            // Wenn die Funktion keinen Fehler wirft, soll der Test fehlschlagen
             fail('Expected checkCategory to throw an error');
         } catch (error) {
             expect(error.message).toContain('Failed to aggregate questions');
