@@ -1,10 +1,10 @@
 const UserService = require('../user/UserService');
 const User = require('../user/UserModel');
+const mongoose = require('mongoose');
 const { MongoMemoryServer } = require('mongodb-memory-server');
-const mongoose = require('mongoose')
 
 let originalEnv;
-let mongoServer
+let mongoServer;
 
 beforeAll(async () => {
   mongoServer = await MongoMemoryServer.create();
