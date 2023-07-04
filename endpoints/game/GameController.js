@@ -767,5 +767,5 @@ module.exports = {
     setAnswer,
     setExtension,
     newGame,
-    lobbySynchro
+    lobbySynchro,
 }
