@@ -6,7 +6,6 @@ let mongoServer;
 
 beforeAll(async () => {
   mongoServer = await MongoMemoryServer.create();
-
   await mongoose.connect(mongoServer.getUri(), { useNewUrlParser: true });
 });
 
@@ -15,6 +14,7 @@ afterEach(async () => {
 });
 
 afterAll(async () => {
+  await mongoose.disconnect();
   await mongoServer.stop();
 });
 

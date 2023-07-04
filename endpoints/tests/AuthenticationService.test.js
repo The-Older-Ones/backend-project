@@ -11,16 +11,20 @@ jest.mock('jsonwebtoken');
 jest.mock('config');
 
 let originalEnv;
+let mongoServer;
 
 beforeAll(async () => {
-  const mongoServer = await MongoMemoryServer.create();
+  mongoServer = await MongoMemoryServer.create();
   await mongoose.connect(mongoServer.getUri(), { useNewUrlParser: true });
   originalEnv = { ...process.env };
   process.env.TOKEN_KEY = '123456';
 });
+
 afterAll(async () => {
     jest.clearAllMocks();
     process.env = originalEnv;
+    await mongoose.disconnect();
+    await mongoServer.stop();
 })
 
 describe('createToken', () => {

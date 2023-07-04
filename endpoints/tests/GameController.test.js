@@ -15,11 +15,18 @@ const socketMock = {
   to: jest.fn().mockReturnThis()
 };
 
+let mongoServer;
+
 beforeAll(async () => {
-  const mongoServer = await MongoMemoryServer.create();
+  mongoServer = await MongoMemoryServer.create();
   await mongoose.connect(mongoServer.getUri(), { useNewUrlParser: true });
   await List.create({ list: ["Test"] });
 });
+
+afterAll(async () => {
+  await mongoose.disconnect();
+  await mongoServer.stop();
+})
 
 afterEach(() => {
   gameModule.disconnect(ioMock, socketMock);
