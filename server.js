@@ -11,17 +11,9 @@ const bodyparser = require('body-parser');
 const connection = require("./endpoints/game/GameConnection");
 const logger = require("./logger")
 
-// --- Wurde vorher benutzt und falls es später Probleme geben sollte diesen statt app.use(cors) nuutzen ---
-// app.use("*", cors());
-// app.use(function (req, res, next) {
-//     res.header("Access-Control-Allow-Origin", "*");
-//     res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
-//     res.header("Access-Control-Expose-Headers", "Authorization");
-//     next();
-// });
-
 app.use(cors({
-    exposedHeaders: ['Authorization']
+    exposedHeaders: ['Authorization'],
+    origin: 'https://triviosa.netlify.app'
 }));
 app.use(bodyparser.json());
 app.use('/api/users', userRoutes);
@@ -51,7 +43,7 @@ const io = socketIO(server, {
 
 connection(io.of('/api/game'));
 
-const port = 80;
+const port = process.env.PORT || 80;
 server.listen(port, () =>{
     logger.info(`Server started on port ${port}`);
 });

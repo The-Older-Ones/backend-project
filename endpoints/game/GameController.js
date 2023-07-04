@@ -1,3 +1,4 @@
+require('dotenv').config();
 const GameService = require("./GameServices")
 const jwt = require('jsonwebtoken');
 const config = require("config");
@@ -128,7 +129,7 @@ function authenticated(token) {
         return false;
     }
     let verify;
-    const privateKey = config.get("session.tokenKey");
+    const privateKey = process.env.TOKEN_KEY;
     jwt.verify(token, privateKey, { algorithms: "HS256" }, function (err, result) {
         if (result) {
             verify = true;
@@ -158,11 +159,20 @@ function joinLobby(io, socket, data) {
         return;
     }
 
-    const playersInLobby = Object.keys(lobbys[lobbyId].player).length;
-    const lobbyMaxPlayer = lobbys[lobbyId].player.playerNumber;
+    const playersInLobby = Object.keys(lobbys[lobbyId].player);
 
-    if (playersInLobby == lobbyMaxPlayer) {
-        logger.error(`Lobby is full ${playersInLobby} : ${lobbyMaxPlayer}`);
+    if (playersInLobby.includes(socket.id)) {
+        logger.warn("Player already in Lobby: " + lobbyId);
+        socket.emit("error", { message: "Player already in Lobby", type: "warning" })
+        return;
+    }
+
+    const playerNumberInLobby = playersInLobby.length;
+    const lobbyMaxPlayer = lobbys[lobbyId].playerNumber;
+
+
+    if (playerNumberInLobby == lobbyMaxPlayer) {
+        logger.error(`Lobby is full ${playerNumberInLobby} : ${lobbyMaxPlayer}`);
         socket.emit("error", { message: "Lobby is full", type: "critical" })
         return;
     }
@@ -664,7 +674,7 @@ function evaluation(io, room) {
 
     if (lobbyRoom.rounds == 0 && !lobbyRoom.extension) {
         logger.info(`Game : ${room} successfully finished`)
-        io.to(room).emit("gameFinished", { leaderboard: result });
+        io.to(room).emit("gameFinished", { leaderboard: result, rightAnswer: lobbyRoom.question.correct_answer });
         return;
     };
 
@@ -709,7 +719,7 @@ function newGame(io, socket) {
 }
 
 function lobbySynchro(socket, data) {
-    const room = position[this.id];
+    const room = position[socket.id];
     socket.to(room).emit("synchronizedLobby", data)
 }
 

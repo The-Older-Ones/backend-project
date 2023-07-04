@@ -71,7 +71,6 @@ jest.mock('../../database/TriviaQuestions/QuestionModel', () => ({
     aggregate: jest.fn().mockResolvedValue(questionSet)
 }));
 
-
 jest.mock('config', () => ({
     game: {
         difficultys: ['100', '200', '300', '600', '1000']
@@ -122,7 +121,6 @@ describe('Trivia Game Functions', () => {
             );
         });
     });
-
     it('should throw an error if a category does not have enough questions for all difficulties', async () => {
         const categories = ['Category 1', 'Category 2', 'Category 3'];
 
