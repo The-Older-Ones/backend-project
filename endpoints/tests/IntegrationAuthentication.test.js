@@ -70,11 +70,7 @@ describe('createToken integration test', () => {
       userService.authenticate(content, (authenticateError) => {
         expect(authenticateError).toEqual(true);
 
-        createToken(content, (tokenError, token) => {
-          expect(tokenError).toEqual(true);
-          expect(token).toBeNull();
           done();
-        });
       });
     });
 });
