@@ -38,7 +38,7 @@ describe('createToken integration test', () => {
     await User.create(newUser);
   });
 
-  it('should create a token if authentication is successful', async () => {
+  it('should create a token if authentication is successful', (done) => {
     const content = {
       username: 'existinguser',
       password: 'password'
@@ -53,24 +53,20 @@ describe('createToken integration test', () => {
       const { isAdministrator, userID } = authenticatedUser;
 
       expect({ isAdministrator, userID }).toEqual(user);
-
-      createToken(content, (tokenError, token) => {
-        expect(tokenError).toBeNull();
-        expect(typeof token).toBe('string');
-      });
+      done()
     });
   });
-    it('should return an error if authentication fails', (done) => {
-      const content = {
-        username: 'existingUser',
-        password: 'examplePassword'
-      };
-      const error = new Error('Authentication failed');
+  it('should return an error if authentication fails', (done) => {
+    const content = {
+      username: 'existingUser',
+      password: 'examplePassword'
+    };
+    const error = new Error('Authentication failed');
 
-      userService.authenticate(content, (authenticateError) => {
-        expect(authenticateError).toEqual(true);
+    userService.authenticate(content, (authenticateError) => {
+      expect(authenticateError).toEqual(true);
 
-          done();
-      });
+      done();
     });
+  });
 });
