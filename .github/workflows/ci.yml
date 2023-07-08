@@ -1,34 +1,81 @@
-# This workflow will do a clean installation of node dependencies, cache/restore them, build the source code and run tests across different versions of node
-# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-nodejs
+# # This workflow will do a clean installation of node dependencies, cache/restore them, build the source code and run tests across different versions of node
+# # For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-nodejs
+
+# name: CI
+
+# on:
+#   push:
+#     branches:
+#       - main
+
+# jobs:
+#   test:
+#     runs-on: ubuntu-latest
+
+#     steps:
+#     - name: Checkout repository
+#       uses: actions/checkout@v2
+
+#     - name: Checkout code
+#       uses: actions/setup-node@v2
+#       with:
+#         node-version: 15
+
+#     - name: Print current working directory
+#       run: pwd
+
+#     - name: List files in the working directory
+#       run: ls -al
+
+#     - name: Install dependencies
+#       run: npm ci
+
+#     - name: Run tests
+#       run: npm test
 
 name: CI
 
 on:
-  push:
-    branches:
-      - main
+    push:
+        branches:
+            - main
 
 jobs:
-  test:
-    runs-on: ubuntu-latest
+    test:
+        runs-on: ubuntu-latest
 
-    steps:
-    - name: Checkout repository
-      uses: actions/checkout@v2
-      
-    - name: Checkout code
-      uses: actions/setup-node@v2
-      with:
-        node-version: 15
-        
-    - name: Print current working directory
-      run: pwd
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v2
 
-    - name: List files in the working directory
-      run: ls -al
+            - name: Setup Node.js
+              uses: actions/setup-node@v2
+              with:
+                  node-version: 15
 
-    - name: Install dependencies
-      run: npm ci
-      
-    - name: Run tests
-      run: npm test
+            - name: Print current working directory
+              run: pwd
+
+            - name: List files in the working directory
+              run: ls -al
+
+            - name: Install dependencies
+              run: npm ci
+
+            - name: Run tests
+              run: npm test
+
+    deploy:
+        needs: test # This ensures it only runs if the test job succeeds
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Checkout code
+              uses: actions/checkout@v2
+
+            - name: Deploy to Heroku
+              uses: akhileshns/heroku-deploy@v3.12.12 # Or later version
+              with:
+                  heroku_api_key: ${{ secrets.HEROKU_API_KEY }}
+                  heroku_app_name: 'triviosa-backend' # Set this to your Heroku app's name
+                  heroku_email: ${{ secrets.HEROKU_EMAIL }}
