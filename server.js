@@ -1,19 +1,18 @@
 const express = require('express');
-const database = require('./database/db');
+const app = express();
 const cors = require("cors");
 const http = require('http');
+const bodyparser = require('body-parser');
+const database = require('./database/db');
+const socketIO = require('socket.io');
+const connection = require("./endpoints/game/GameConnection");
 const userRoutes = require('./endpoints/user/UserRoute');
 const authenticationRoute = require('./endpoints/authentication/AuthenticationRoutes');
 const questionInit = require("./database/TriviaQuestions/QuestionInit");
-const socketIO = require('socket.io');
-const app = express();
-const bodyparser = require('body-parser');
-const connection = require("./endpoints/game/GameConnection");
 const logger = require("./logger")
 
 app.use(cors({
     exposedHeaders: ['Authorization'],
-    origin: 'https://triviosa.netlify.app'
 }));
 app.use(bodyparser.json());
 app.use('/api/users', userRoutes);

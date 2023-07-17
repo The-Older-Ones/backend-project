@@ -41,7 +41,6 @@ const fileLoader = async () => {
                 catalog.push(questionObject);
             })
         });
-
         await Promise.all(fileReadPromises);
         logger.info("Files loaded successfully");
     } catch (err) {

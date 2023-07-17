@@ -6,7 +6,6 @@ const categoryListSchema = new mongoose.Schema({
     {
         timestamps: true,
     }
-
 );
 
 categoryListSchema.pre('save', async function (next) {

@@ -31,7 +31,7 @@ jobs:
               run: npm test
 
     deploy:
-        needs: test # This ensures it only runs if the test job succeeds
+        needs: test
         runs-on: ubuntu-latest
 
         steps:
@@ -39,8 +39,8 @@ jobs:
               uses: actions/checkout@v2
 
             - name: Deploy to Heroku
-              uses: akhileshns/heroku-deploy@v3.12.12 # Or later version
+              uses: akhileshns/heroku-deploy@v3.12.12
               with:
                   heroku_api_key: ${{ secrets.HEROKU_API_KEY }}
-                  heroku_app_name: 'triviosa-backend' # Set this to your Heroku app's name
+                  heroku_app_name: 'triviosa-backend'
                   heroku_email: ${{ secrets.HEROKU_EMAIL }}

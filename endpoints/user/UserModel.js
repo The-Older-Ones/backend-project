@@ -9,7 +9,6 @@ const UserSchema = new mongoose.Schema({
     minlength: 4,
     validate: {
       validator: function (v) {
-        // Check if the input value contains only valid characters
         return /^[a-zA-Z0-9_-]*$/.test(v);
       },
       message: 'UserID contains invalid characters',
@@ -21,7 +20,6 @@ const UserSchema = new mongoose.Schema({
     //required: true,
     validate: {
       validator: function (v) {
-        // Regular expression pattern for email validation
         return /^([\w-\.]+@([\w-]+\.)+[\w-]{2,4})?$/.test(v);
       },
       message: 'Please enter a valid email address',
@@ -33,7 +31,6 @@ const UserSchema = new mongoose.Schema({
     minlength: [8,'Password is shorter than the minimum allowed length (8).'],
     validate: {
       validator: function (v) {
-        // Checking if password has ASCII characters
         const passRegex = /^[\x00-\x7F]*$/;
         return passRegex.test(v);
 
@@ -51,8 +48,7 @@ const UserSchema = new mongoose.Schema({
       validate: [
         {
           validator: function (v) {
-            // Check that the picture size is less than 6 MB
-            return v.length <= 6000000; // 6 MB
+            return v.length <= 6000000;
           },
           message: 'Profile picture is more than 6 MB',
         },
@@ -63,7 +59,6 @@ const UserSchema = new mongoose.Schema({
       validate: [
         {
           validator: function (v) {
-            // Regular expression pattern for content type validation
             return /^image\/(png|jpeg|gif)$/.test(v);
           },
           message: 'Please upload a valid image file (png, jpeg or gif)',
